@@ -450,7 +450,16 @@ async function pullSnap(){
 }
 function snapState(){
   const st=Object.assign({},S);delete st.classes;delete st.arch;delete st.applied;
-  st.players=S.players.map(p=>({id:p.id,name:p.name,init:p.init}));return st;
+  const sp=S.players.map(p=>{const w=String(p.name||"").trim().split(/\s+/).filter(Boolean);
+    const up=w.filter(x=>x===x.toUpperCase()&&x!==x.toLowerCase());
+    if(up.length&&up.length<w.length)return {pr:w.filter(x=>!up.includes(x)).join(" "),su:up.join("")};
+    if(w.length<2)return {pr:w.join(" "),su:""};
+    return {pr:w.slice(0,-1).join(" "),su:w[w.length-1]}});
+  const Ls=sp.map(()=>1),mk=i=>sp[i].pr+(sp[i].su?" "+sp[i].su.slice(0,Ls[i]).toUpperCase()+".":"");
+  for(let r=0;r<12;r++){const c={};sp.forEach((_,i)=>{const k=mk(i);(c[k]=c[k]||[]).push(i)});let ch=false;
+    Object.values(c).forEach(g=>{if(g.length>1)g.forEach(i=>{if(Ls[i]<sp[i].su.length){Ls[i]++;ch=true}})});if(!ch)break}
+  const nm=sp.map((_,i)=>mk(i));
+  st.players=S.players.map((p,i)=>({id:p.id,name:nm[i],init:p.init}));return st;
 }
 function pushSnap(){if(LINK||!SY.url||!SY.secret)return;clearTimeout(pushT);pushT=setTimeout(doPush,700)}
 const au=()=>"?auth="+encodeURIComponent(SY.secret);
