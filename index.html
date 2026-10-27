@@ -394,9 +394,9 @@ function applyEv(ev){
     case "toc":if(tb){const m=em(tb,ev.mi);m.o[ev.sp][ev.k]=Math.max(0,(m.o[ev.sp][ev.k]||0)+ev.d)}break;
     case "tscx":if(tb)delete tb.m[ev.mi];break;
     case "tabs":if(tb){if(tb.ab[ev.id])delete tb.ab[ev.id];else tb.ab[ev.id]=true}break;
-    case "tscore":if(tb)em(tb,ev.mi).s[ev.sp]=ev.v;break;
-    case "st":if(tb)em(tb,ev.mi).st[ev.sp][ev.k]=ev.v;break;
-    case "tterr":if(tb)tb.terrain=ev.v;break;
+    case "tscore":if(tb)em(tb,ev.mi).s[ev.sp]=ev.v==null?null:ev.v;break;
+    case "st":if(tb)em(tb,ev.mi).st[ev.sp][ev.k]=ev.v==null?null:ev.v;break;
+    case "tterr":if(tb)tb.terrain=ev.v==null?"":ev.v;break;
     case "med":if(P(ev.pid)){S.med=S.med||{};const m=S.med[ev.pid]=S.med[ev.pid]||{},r=m[ev.e]=m[ev.e]||{};const was=r[ev.k];Object.keys(r).forEach(x=>delete r[x]);if(!was)r[ev.k]=true}break;
     case "medsig":if(P(ev.pid)){S.sig=S.sig||{};const s=S.sig[ev.pid]=S.sig[ev.pid]||{};if(ev.v&&+ev.v!=ev.pid)s[ev.e]=+ev.v;else delete s[ev.e]}break;
     case "mbadd":if(P(ev.pid)&&P(ev.p)&&ev.p!=ev.pid&&ev.n>=0){S.mba=S.mba||{};(S.mba[ev.pid]=S.mba[ev.pid]||[]).push({p:ev.p,n:ev.n,date:ev.date})}break;
@@ -417,17 +417,35 @@ async function sendPend(){
   }
   const f=$("#ft");if(f&&LINK)render();
 }
+function normSnap(s){
+  const A=x=>Array.isArray(x)?x.filter(v=>v!=null):(x&&typeof x=="object"?Object.keys(x).sort((a,b)=>a-b).map(k=>x[k]).filter(v=>v!=null):[]);
+  const O=x=>Array.isArray(x)?Object.fromEntries(x.map((v,i)=>[i,v]).filter(e=>e[1]!=null)):(x&&typeof x=="object"?x:{});
+  const at=(x,i)=>x==null?null:x[i];
+  s.players=A(s.players);s.matches=A(s.matches);s.arch=[];s.bar=A(s.bar).map(r=>A(r));if(!s.bar.length)s.bar=DEF();
+  s.obs=Array.from({length:6},(_,i)=>{const o=at(s.obs,i)||{};return {n:o.n||"",c:!!o.c,w:o.w==null?1:+o.w}});
+  s.tours=A(s.tours).map(t=>{
+    t.tables=A(t.tables).map(tb=>{
+      tb.pl=A(tb.pl);tb.ab=O(tb.ab);const m0=O(tb.m),m={};
+      Object.keys(m0).forEach(k=>{const v=m0[k];if(!v)return;
+        m[k]={s:[0,1].map(i=>{const x=at(v.s,i);return x==null?null:+x}),o:[0,1].map(i=>Array.from({length:6},(_,j)=>+at(at(v.o,i),j)||0)),st:[0,1].map(i=>Object.assign({},at(v.st,i)||{}))}});
+      tb.m=m;if(tb.terrain==null)tb.terrain="";return tb});
+    t.moves=A(t.moves);t.notes=A(t.notes);return t});
+  s.med=O(s.med);Object.keys(s.med).forEach(p=>{s.med[p]=O(s.med[p]);Object.keys(s.med[p]).forEach(e=>{s.med[p][e]=O(s.med[p][e])})});
+  s.sig=O(s.sig);Object.keys(s.sig).forEach(p=>{s.sig[p]=O(s.sig[p])});
+  s.mba=O(s.mba);Object.keys(s.mba).forEach(p=>{s.mba[p]=A(s.mba[p])});
+  return s;
+}
 async function pullSnap(){
   if(!DBURL)return;
   try{
     const r=await fetch(DBURL+"/snapshot.json",{cache:"no-store"});if(!r.ok)throw 0;
     const s=await r.json();synced=new Date();netMsg="";
     if(s&&s.state&&s.ts!=lastTs){
-      lastTs=s.ts;S=s.state;const ap=new Set(s.applied||[]);
+      lastTs=s.ts;S=normSnap(s.state);const ap=new Set(s.applied||[]);
       PEND=PEND.filter(e=>!(ap.has(e.id)));PEND.forEach(applyEv);
       if(!editing())render();else lastTs=0;
     }
-  }catch(e){netMsg="Hors ligne : nouvelle tentative…"}
+  }catch(e){netMsg=(e instanceof Error&&!(e instanceof TypeError&&/fetch|Failed|Network/i.test(e.message)))?"Erreur d’affichage : "+e.message:"Hors ligne : nouvelle tentative…";lastTs=0;try{render()}catch(e2){}}
   PEND.some(e=>!e.sent)&&sendPend();
 }
 function snapState(){
