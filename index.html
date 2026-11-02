@@ -106,6 +106,51 @@ nav button{padding:14px 16px}
 .ob{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0;font-size:18px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 :focus-visible{outline:2px solid var(--ball);outline-offset:2px}
+
+#pbil{position:fixed;inset:0;z-index:9999;background:#d9d6d6;overflow:auto;font-family:Barlow,system-ui,sans-serif;color:#241c1d}
+#pbil .pbbar{position:sticky;top:0;z-index:2;background:#2a2a2e;color:#fff;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#pbil .pbbar b{font-size:18px;margin-right:auto}
+#pbil .pbbar .btn{min-height:46px}
+#pbil .pbhint{max-width:794px;margin:12px auto;padding:0 14px;font-size:15px;line-height:1.4}
+#pbil .pbp{width:794px;height:1120px;box-sizing:border-box;background:#fff;margin:14px auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#pbil .pbh{background:#2a2a2e;color:#fff;padding:22px 48px 16px;border-bottom:8px solid #c8102e}
+#pbil .pbh i{display:block;font-style:normal;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#d9d6d6}
+#pbil .pbh h1{margin:4px 0 0;font:700 38px/1.05 'Barlow Condensed',Barlow,sans-serif;color:#fff}
+#pbil .pbb{padding:16px 48px 0;display:flex;flex-direction:column;gap:12px;flex-grow:1;min-height:0}
+#pbil .pbf{display:flex;gap:24px;font-size:16px}
+#pbil .pbf div{display:flex;gap:8px;align-items:flex-end;flex-grow:1}
+#pbil .pbf div.c{flex-grow:0;width:130px}
+#pbil .pbf span.v{flex-grow:1;border-bottom:1.5px solid #241c1d;min-height:24px;font-weight:600;font-size:18px}
+#pbil table{border-collapse:collapse;width:100%;border:1.5px solid #241c1d;font-size:16px}
+#pbil th{background:#f1eded;font-size:14px;font-weight:600;padding:8px 10px;border-bottom:1.5px solid #241c1d;text-align:center}
+#pbil th:first-child,#pbil td:first-child{text-align:left}
+#pbil td{padding:9px 10px;border-bottom:1px solid #cfc8c8;text-align:center}
+#pbil .pbn{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#c8102e;color:#fff;font-weight:600;font-size:15px;margin-right:10px}
+#pbil .pbx{display:inline-grid;place-items:center;height:30px;border:1.5px solid #241c1d;border-radius:6px;box-sizing:border-box;font-weight:600;font-size:15px}
+#pbil .pbm{display:inline-block;width:30px;height:30px;border-radius:50%;border:3px solid;box-sizing:border-box;margin:0 5px;vertical-align:middle}
+#pbil .pbby{display:inline-block;min-width:96px;border-bottom:1.5px solid #241c1d;min-height:24px;font-size:14px;font-weight:600}
+#pbil .pbt{font-size:13px;color:#6a6061;padding:8px 10px;text-align:left}
+#pbil .pbg{display:flex;gap:16px}
+#pbil .pbc{border:1.5px solid #e4dddd;border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+#pbil .pbc b{font-size:17px}
+#pbil .pbl{display:flex;align-items:center;gap:10px;font-size:15px}
+#pbil .pbk{width:16px;height:16px;border:1.5px solid #241c1d;border-radius:3px;box-sizing:border-box;flex-shrink:0;display:grid;place-items:center;font-size:13px;line-height:1;font-weight:700}
+#pbil .pbw{display:flex;gap:8px;align-items:flex-end;font-size:16px;margin-bottom:14px}
+#pbil .pbw span.l{flex-grow:1;border-bottom:1.5px solid #241c1d;height:20px}
+#pbil .pbo{border:1.5px solid #241c1d;border-radius:10px;padding:10px 16px 12px;display:flex;flex-direction:column;gap:8px;flex-grow:1;min-height:60px;font-size:15px;line-height:1.4}
+#pbil .pbo em{font-style:normal;min-height:44px}
+#pbil .pbs{margin-top:auto;text-align:right;font-size:14px;color:#6a6061}
+#pbil .pbz{padding:12px 48px 20px;display:flex;justify-content:space-between;font-size:13px;color:#6a6061}
+@media print{
+  @page{size:A4;margin:0}
+  html,body{background:#fff!important;margin:0!important;padding:0!important}
+  body>*:not(#pbil){display:none!important}
+  #pbil{position:static;overflow:visible;background:#fff}
+  #pbil .pbbar,#pbil .pbhint{display:none!important}
+  #pbil .pbp{margin:0;box-shadow:none;break-after:page;page-break-after:always}
+  #pbil .pbp:last-child{break-after:auto;page-break-after:auto}
+  #pbil *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -601,6 +646,40 @@ function commentOf(id){
   if(t.length<50)t+=" "+(lv<=2?"Des progrès sont à portée avec de la régularité.":lv==3?"La progression est encourageante, continuez ainsi.":"Bravo pour ce niveau, à confirmer dans la durée.");
   return t;
 }
+
+/* ===== Bilans imprimables ===== */
+const PBX=["Jongles en coup droit","Jongles en revers","Jongles alternés","Jongles hauts et bas","Rebond sur la table","Jongles en marchant"];
+function pbSplit(n){
+  const w=String(n||"").trim().split(/\s+/).filter(Boolean),up=w.filter(x=>x===x.toUpperCase()&&x!==x.toLowerCase());
+  if(up.length&&up.length<w.length)return {pr:w.filter(x=>!up.includes(x)).join(" "),su:up.join(" ")};
+  if(w.length<2)return {pr:w.join(" "),su:""};
+  return {pr:w.slice(0,-1).join(" "),su:w[w.length-1]};
+}
+function pbPage(r){
+  const id=r.id,md=(S.med&&S.med[id])||{},sg=(S.sig&&S.sig[id])||{},nx=pbSplit(r.name);
+  const cnt=MEDL.map((l,k)=>MEDX.reduce((s,_,e)=>s+(md[e]&&md[e][k]?1:0),0));
+  const rows=PBX.map((t,e)=>{
+    let hk=-1;MEDL.forEach((_,k)=>{if(md[e]&&md[e][k])hk=k});
+    const by=sg[e]||MEDL.reduce((v,_,k)=>v||(md[e]&&md[e][k]&&md[e][k].by)||0,0),bp=by&&P(by)?pbSplit(P(by).name):null;
+    const byt=bp?bp.pr+(bp.su?" "+bp.su[0].toUpperCase()+".":""):"";
+    return `<tr><td style="padding:12px 10px"><div style="display:flex;align-items:flex-start"><span class="pbn" style="flex-shrink:0">${e+1}</span><div><b>${esc(MEDX[e])}</b><div style="font-size:13px;color:#6a6061;line-height:1.35;margin-top:2px;max-width:330px">${esc(MEDT[e])}</div></div></div></td><td><span class="pbx" style="width:60px">${hk>=0?"≥ "+MEDL[hk][1]:""}</span></td><td>${MEDL.map((l,k)=>`<span class="pbm" style="border-color:${l[2]};background:${k==hk?l[2]:"transparent"}"></span>`).join("")}</td><td><span class="pbby">${esc(byt)}</span></td></tr>`;
+  }).join("");
+  return `<section class="pbp"><div class="pbh"><i>Tennis de table · Leçon 1</i><h1>Mon bilan : le défi des médailles</h1></div><div class="pbb">
+<div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
+<table><thead><tr><th>Exercice</th><th style="width:110px">Mon meilleur score</th><th style="width:170px">Médaille</th><th style="width:120px">Validé par</th></tr></thead><tbody>${rows}<tr><td colspan="4" class="pbt">Bronze : ${MEDL[0][1]} rebonds de suite · Argent : ${MEDL[1][1]} · Or : ${MEDL[2][1]}</td></tr></tbody></table>
+<div class="pbc"><b>Mon total de médailles</b><div style="display:flex;gap:40px;align-items:center">${MEDL.map((l,k)=>`<div style="display:flex;align-items:center;gap:10px;font-size:17px"><span style="width:26px;height:26px;border-radius:50%;background:${l[2]};display:block"></span>${l[0]}<span class="pbx" style="width:64px;height:36px;font-size:19px">${cnt[k]}</span></div>`).join("")}</div></div>
+</div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
+}
+function pbOpen(onlyMed){
+  const C=compute();
+  let rs=C.rows.slice().sort((a,b)=>a.name.localeCompare(b.name,"fr"));
+  if(onlyMed)rs=rs.filter(r=>{const md=(S.med&&S.med[r.id])||{};return Object.keys(md).some(e=>md[e]&&MEDL.some((_,k)=>md[e][k]))});
+  let d=document.getElementById("pbil");if(!d){d=document.createElement("div");d.id="pbil";document.body.appendChild(d)}
+  document.body.style.overflow="hidden";
+  d.innerHTML=`<div class="pbbar"><b>Bilans leçon 1 · ${rs.length} fiche${rs.length>1?"s":""}</b><button type="button" class="btn" data-a="pbprint">Imprimer / PDF</button><button type="button" class="btn sec" data-a="${onlyMed?"pball":"pbmed"}">${onlyMed?"Tous les élèves":"Seulement ceux qui ont une médaille"}</button><button type="button" class="btn sec" data-a="pbclose">Fermer</button></div><p class="pbhint">Touchez « Imprimer / PDF ». Pour obtenir un PDF, choisissez « Enregistrer au format PDF » (ou « Imprimer » puis pincez l’aperçu pour l’agrandir, et Partager › Enregistrer dans Fichiers). Une page par élève.</p>${rs.map(pbPage).join("")||'<p class="pbhint">Aucun élève à afficher.</p>'}`;
+  d.scrollTop=0;
+}
+function pbClose(){const d=document.getElementById("pbil");if(d)d.remove();document.body.style.overflow=""}
 function vRecap(C){
   const E=[];Object.keys(S.mba||{}).forEach(o=>(S.mba[o]||[]).forEach(x=>{if(P(+o)&&P(x.p))E.push({a:+o,b:x.p,n:x.n,date:x.date})}));
   const inv=id=>E.filter(e=>e.a==id||e.b==id),other=(e,id)=>e.a==id?e.b:e.a;
@@ -624,7 +703,8 @@ function vRecap(C){
   const nobs=nrows.filter(x=>x.g!=null).length;
   const l3=`<div class="card">${hd("rc3","Bilan du niveau des joueurs")}${ui.open.rc3?"":`<p class="hint">Moyenne des fiches d’observation remplies par les coachs pendant les tournois (tous tournois confondus). ${nobs} joueur${nobs>1?"s":""} observé${nobs>1?"s":""} sur ${nrows.length}.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th>${STK.map(s=>`<th>${s[1]}</th>`).join("")}<th>Niveau général</th><th>Commentaire</th></tr></thead><tbody>${nrows.map(x=>`<tr><td><div class="who">${av(P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td>${x.N.map(v=>`<td>${cell(v)}</td>`).join("")}<td>${x.g!=null?`<b>${LV[Math.round(x.g)-1]}</b><br><small>${fr(x.g)}/5</small>`:"–"}</td><td style="min-width:240px;font-size:14px;line-height:1.35">${esc(commentOf(x.r.id))}</td></tr>`).join("")}</tbody></table></div>`}</div>`;
-  return l1+`<div class="card">${hd("rc2","Leçon 2 : Mon meilleur ami")}${ui.open.rc2?"":`<p class="hint">${tot} échange${tot>1?"s":""} enregistré${tot>1?"s":""}. Le record d’un élève est son meilleur échange, avec n’importe quel partenaire. « Partenaire d’un record » compte les personnes dont l’élève était le partenaire lors de leur record.</p>
+  const pbtn=`<div class="card"><button type="button" class="btn" data-a="pbil">Imprimer les bilans (PDF)</button><p class="hint">Une fiche bilan de la leçon 1 par élève, préremplie avec ses médailles, à imprimer ou à enregistrer en PDF.</p></div>`;
+  return pbtn+l1+`<div class="card">${hd("rc2","Leçon 2 : Mon meilleur ami")}${ui.open.rc2?"":`<p class="hint">${tot} échange${tot>1?"s":""} enregistré${tot>1?"s":""}. Le record d’un élève est son meilleur échange, avec n’importe quel partenaire. « Partenaire d’un record » compte les personnes dont l’élève était le partenaire lors de leur record.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Record</th><th>Avec</th><th class="n">Essais</th><th class="n">Partenaire d’un record</th></tr></thead><tbody>${rows.map(x=>`<tr><td><div class="who">${av(x.r&&P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n"><b>${x.best||"–"}</b></td><td>${x.w.length?esc(x.w.join(", ")):"–"}</td><td class="n">${x.essais}</td><td class="n">${x.pc}</td></tr>`).join("")}</tbody></table></div>`}</div>`+l3;
 }
 function nivOf(id){
@@ -911,6 +991,10 @@ function render(){
 
 function act(a,v){
   if(MODE.on&&!STUA.includes(a))return;
+  if(a=="pbil"||a=="pball"){pbOpen(false);return}
+  if(a=="pbmed"){pbOpen(true);return}
+  if(a=="pbclose"){pbClose();return}
+  if(a=="pbprint"){window.print();return}
   if(a!="rec")ui.flash="";
   const C=compute(),TB=TR()&&TR().tables[ui.tt];
   if(a=="tab"){ui.tab=v;try{location.hash=v}catch(e){}}
