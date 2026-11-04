@@ -110,10 +110,12 @@ nav button{padding:14px 16px}
 #pbil{position:fixed;inset:0;z-index:9999;background:#d9d6d6;overflow:auto;font-family:Barlow,system-ui,sans-serif;color:#241c1d}
 #pbil .pbbar{position:sticky;top:0;z-index:2;background:#2a2a2e;color:#fff;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 #pbil .pbbar b{font-size:18px;margin-right:auto}
-#pbil .pbbar .btn{min-height:46px}
+#pbil .pbbar .btn{min-height:46px;font-size:16px;font-weight:600;background:#c8102e;color:#fff;border:2px solid #fff}
+#pbil .pbbar .btn.sec{background:#fff;color:#241c1d;border:2px solid #fff}
 #pbil .pbhint{max-width:794px;margin:12px auto;padding:0 14px;font-size:15px;line-height:1.4}
 #pbil .pbp{width:794px;height:1120px;box-sizing:border-box;background:#fff;margin:14px auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-#pbil .pbh{background:#2a2a2e;color:#fff;padding:22px 48px 16px;border-bottom:8px solid #c8102e}
+#pbil .pbh{position:relative;background:#2a2a2e;color:#fff;padding:22px 48px 16px;border-bottom:8px solid #c8102e}
+#pbil .pbh img{position:absolute;right:36px;top:12px;height:72px;width:auto;background:#fff;border-radius:10px;padding:4px 10px;box-sizing:content-box}
 #pbil .pbh i{display:block;font-style:normal;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#d9d6d6}
 #pbil .pbh h1{margin:4px 0 0;font:700 38px/1.05 'Barlow Condensed',Barlow,sans-serif;color:#fff}
 #pbil .pbb{padding:16px 48px 0;display:flex;flex-direction:column;gap:12px;flex-grow:1;min-height:0}
@@ -170,7 +172,7 @@ try{const j=localStorage.getItem(KEY);if(j)S=JSON.parse(j)}catch(e){}
 const MK="atp-mode-v1";let MODE={on:false,pin:""};
 try{const m=JSON.parse(localStorage.getItem(MK));if(m&&m.on)MODE=m}catch(e){}
 const saveMode=()=>{try{localStorage.setItem(MK,JSON.stringify(MODE))}catch(e){}};
-const STUT=["tournoi","tour","joueur"],STUA=["tab","med","mbadd","mbchrono","rec","tsel","ttab","tmat","toc","tsc","tscx","tabs","tog","unl","modeoff"],STUC=["w","l","d","pj","st","tscore","tterr","medsig"];
+const STUT=["tournoi","tour","joueur"],STUA=["tab","med","mbadd","mbchrono","rec","tsel","ttab","tmat","toc","tsc","tscx","tabs","tog","unl","modeoff","l3s","l3p","l3k","l4d","l4p"],STUC=["w","l","d","pj","st","tscore","tterr","medsig","l3t"];
 const QS=new URLSearchParams(location.search),LINK=QS.has("eleve"),DBURL=(QS.get("db")||"").replace(/\/+$/,"");
 let SY={url:"",secret:""};try{const y=JSON.parse(localStorage.getItem("atp-sync-v1"));if(y&&y.url)SY=y}catch(e){}
 if(LINK){S={title:"Tennis de table 4ème",players:[],matches:[],bar:DEF(),arch:[],nid:100,tours:[]};MODE={on:true,pin:"",link:true}}
@@ -444,6 +446,10 @@ function applyEv(ev){
     case "tterr":if(tb)tb.terrain=ev.v==null?"":ev.v;break;
     case "med":if(P(ev.pid)){S.med=S.med||{};const m=S.med[ev.pid]=S.med[ev.pid]||{},r=m[ev.e]=m[ev.e]||{};const was=r[ev.k];Object.keys(r).forEach(x=>delete r[x]);if(!was)r[ev.k]=true}break;
     case "medsig":if(P(ev.pid)){S.sig=S.sig||{};const s=S.sig[ev.pid]=S.sig[ev.pid]||{};if(ev.v&&+ev.v!=ev.pid)s[ev.e]=+ev.v;else delete s[ev.e]}break;
+    case "l4m":{const g=S.l4g&&S.l4g.g&&S.l4g.g[ev.i];if(g&&/^(a|b|p)$/.test(ev.key)&&ev.mi>=0&&ev.mi<8){g.r=g.r||{};const key=ev.mi+"_"+ev.key;if(ev.v==null||ev.v<=0)delete g.r[key];else g.r[key]=Math.min(+ev.v,ev.key=="p"?5:ev.key=="a"?11:109)}break}
+    case "l3t":if(P(ev.pid)){S.l3s=S.l3s||{};const o=S.l3s[ev.pid]=S.l3s[ev.pid]||{r:{}};if(ev.v>=1&&ev.v<=20)o.t=+ev.v;else delete o.t}break;
+    case "l3k":if(P(ev.pid)&&ev.s>=0&&ev.s<3&&ev.k>=0&&ev.k<10){S.l3s=S.l3s||{};const o=S.l3s[ev.pid]=S.l3s[ev.pid]||{r:{}};o.r=o.r||{};const key=ev.s+"_"+ev.k;if(ev.v==null)delete o.r[key];else if(ev.v>=0&&ev.v<=2)o.r[key]=+ev.v}break;
+    case "l3":{const g=S.l3&&S.l3.g&&S.l3.g[ev.i];if(g){g.r=g.r||{};const key=ev.mi+"_"+ev.sd+"_"+ev.k;if(ev.v==null)delete g.r[key];else if(ev.v>=0&&ev.v<=3)g.r[key]=+ev.v}break}
     case "mbadd":if(P(ev.pid)&&P(ev.p)&&ev.p!=ev.pid&&ev.n>=0){S.mba=S.mba||{};(S.mba[ev.pid]=S.mba[ev.pid]||[]).push({p:ev.p,n:ev.n,date:ev.date})}break;
   }
 }
@@ -477,6 +483,9 @@ function normSnap(s){
     t.moves=A(t.moves);t.notes=A(t.notes);return t});
   s.med=O(s.med);Object.keys(s.med).forEach(p=>{s.med[p]=O(s.med[p]);Object.keys(s.med[p]).forEach(e=>{s.med[p][e]=O(s.med[p][e])})});
   s.sig=O(s.sig);Object.keys(s.sig).forEach(p=>{s.sig[p]=O(s.sig[p])});
+  if(s.l4g&&typeof s.l4g=="object"){s.l4g.g=A(s.l4g.g).map(g=>({pl:A(g.pl),r:O(g.r)}))}else delete s.l4g;
+  s.l3s=O(s.l3s);Object.keys(s.l3s).forEach(p=>{const o=s.l3s[p]=O(s.l3s[p]);o.r=O(o.r)});
+  if(s.l3&&typeof s.l3=="object"){s.l3.g=A(s.l3.g).map(g=>({pl:A(g.pl),r:O(g.r)}))}else delete s.l3;
   s.mba=O(s.mba);Object.keys(s.mba).forEach(p=>{s.mba[p]=A(s.mba[p])});
   return s;
 }
@@ -649,6 +658,7 @@ function commentOf(id){
 
 /* ===== Bilans imprimables ===== */
 const PBX=["Jongles en coup droit","Jongles en revers","Jongles alternés","Jongles hauts et bas","Rebond sur la table","Jongles en marchant"];
+function pbLogo(){const l=document.getElementById("logo");return l&&l.src?`<img src="${l.src}" alt="Saint Gab’">`:""}
 function pbSplit(n){
   const w=String(n||"").trim().split(/\s+/).filter(Boolean),up=w.filter(x=>x===x.toUpperCase()&&x!==x.toLowerCase());
   if(up.length&&up.length<w.length)return {pr:w.filter(x=>!up.includes(x)).join(" "),su:up.join(" ")};
@@ -664,19 +674,63 @@ function pbPage(r){
     const byt=bp?bp.pr+(bp.su?" "+bp.su[0].toUpperCase()+".":""):"";
     return `<tr><td style="padding:12px 10px"><div style="display:flex;align-items:flex-start"><span class="pbn" style="flex-shrink:0">${e+1}</span><div><b>${esc(MEDX[e])}</b><div style="font-size:13px;color:#6a6061;line-height:1.35;margin-top:2px;max-width:330px">${esc(MEDT[e])}</div></div></div></td><td><span class="pbx" style="width:60px">${hk>=0?"≥ "+MEDL[hk][1]:""}</span></td><td>${MEDL.map((l,k)=>`<span class="pbm" style="border-color:${l[2]};background:${k==hk?l[2]:"transparent"}"></span>`).join("")}</td><td><span class="pbby">${esc(byt)}</span></td></tr>`;
   }).join("");
-  return `<section class="pbp"><div class="pbh"><i>Tennis de table · Leçon 1</i><h1>Mon bilan : le défi des médailles</h1></div><div class="pbb">
+  return `<section class="pbp"><div class="pbh">${pbLogo()}<i>Tennis de table · Leçon 1</i><h1>Mon bilan : le défi des médailles</h1></div><div class="pbb">
 <div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
 <table><thead><tr><th>Exercice</th><th style="width:110px">Mon meilleur score</th><th style="width:170px">Médaille</th><th style="width:120px">Validé par</th></tr></thead><tbody>${rows}<tr><td colspan="4" class="pbt">Bronze : ${MEDL[0][1]} rebonds de suite · Argent : ${MEDL[1][1]} · Or : ${MEDL[2][1]}</td></tr></tbody></table>
 <div class="pbc"><b>Mon total de médailles</b><div style="display:flex;gap:40px;align-items:center">${MEDL.map((l,k)=>`<div style="display:flex;align-items:center;gap:10px;font-size:17px"><span style="width:26px;height:26px;border-radius:50%;background:${l[2]};display:block"></span>${l[0]}<span class="pbx" style="width:64px;height:36px;font-size:19px">${cnt[k]}</span></div>`).join("")}</div></div>
 </div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
 }
-function pbOpen(onlyMed){
-  const C=compute();
+function pbL2(id){
+  const L=[];Object.keys(S.mba||{}).forEach(o=>(S.mba[o]||[]).forEach(x=>{if(!x)return;if(o==id&&P(x.p))L.push({p:x.p,n:x.n,date:x.date});else if(x.p==id&&P(+o))L.push({p:+o,n:x.n,date:x.date})}));
+  L.sort((a,b)=>(a.date<b.date?-1:a.date>b.date?1:0));
+  const best=L.reduce((m,x)=>Math.max(m,x.n),0);
+  const w=best>0?[...new Set(L.filter(x=>x.n==best).map(x=>x.p))]:[];
+  const pc=[...(recStats().pc[id]||[])];
+  return {L,best,w,pc};
+}
+function pbPage2(r){
+  const id=r.id,nx=pbSplit(r.name),D=pbL2(id),nmf=i=>esc(P(i)?P(i).name:"");
+  const lst=a=>a.map(i=>P(i)?P(i).name:"").filter(Boolean).sort((x,y)=>x.localeCompare(y,"fr")).map(esc).join(", ");
+  const rows=D.L.slice(-9).map(x=>`<tr><td>${fd(x.date)}</td><td style="text-align:left">${nmf(x.p)}</td><td><b>${x.n}</b>${x.n==D.best&&D.best>0?" ★":""}</td></tr>`).join("");
+  return `<section class="pbp"><div class="pbh">${pbLogo()}<i>Tennis de table · Leçon 2</i><h1>Mon bilan : mon meilleur ami</h1></div><div class="pbb">
+<div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
+<div class="pbc" style="flex-direction:row;align-items:center;gap:24px"><div style="text-align:center;min-width:150px"><div style="font:700 72px/1 'Barlow Condensed',Barlow,sans-serif;color:#c8102e">${D.best||"–"}</div><div style="font-size:15px">échanges de suite</div></div><div style="font-size:16px;line-height:1.45"><b>Mon record d’échanges</b><br>${D.w.length?"Réalisé avec : <b>"+lst(D.w)+"</b>":"Pas encore d’essai enregistré."}</div></div>
+<div class="pbc"><b>Je suis le partenaire record de ${D.pc.length} personne${D.pc.length>1?"s":""}</b><div style="font-size:16px;line-height:1.45;min-height:22px">${D.pc.length?lst(D.pc):"–"}</div><div style="font-size:13px;color:#6a6061">Ce sont les personnes qui ont réalisé leur record d’échanges avec moi.</div></div>
+<div><b style="font-size:17px">Mes essais</b><table style="margin-top:8px"><thead><tr><th style="width:120px">Date</th><th style="text-align:left">Partenaire</th><th style="width:120px">Échanges</th></tr></thead><tbody>${rows||'<tr><td colspan="3" class="pbt">Aucun essai enregistré.</td></tr>'}</tbody></table>${D.L.length>9?'<div class="pbt" style="padding:6px 0">Les 9 derniers essais sont affichés.</div>':""}${D.best?'<div class="pbt" style="padding:6px 0">★ : mon meilleur échange.</div>':""}</div>
+<div class="pbw" style="margin-top:auto"><span>Mon objectif pour battre mon record :</span><span class="l"></span></div>
+</div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
+}
+function pbPage3(r){
+  const id=r.id,nx=pbSplit(r.name),D=l3Stats(id),z=D.tb?zonesOf(D.tb):0,SR=["Série 1 : je choisis ma zone","Série 2 : le juge choisit la zone","Série 3 : le juge choisit la zone"];
+  const rows=D.t.map((q,i)=>`<tr><td style="text-align:left"><b>${SR[i]}</b></td><td><span class="pbx" style="width:80px;font-size:16px">${q.n?q.a+" / 20":""}</span></td></tr>`).join("");
+  return `<section class="pbp"><div class="pbh">${pbLogo()}<i>Tennis de table · Leçon 3</i><h1>Mon bilan : le service-cible</h1></div><div class="pbb">
+<div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
+<div class="pbc" style="flex-direction:row;align-items:center;gap:24px"><div style="text-align:center;min-width:150px"><div style="font:700 56px/1 'Barlow Condensed',Barlow,sans-serif;color:#c8102e">${D.tb||"–"}</div><div style="font-size:15px">ma table</div></div><div style="font-size:16px;line-height:1.45"><b>${z?z+" zones à viser":"Table non choisie"}</b><br>${z==4?"4 carrés : avant et arrière, gauche et droite":z==3?"3 zones : gauche, milieu et droite":z==2?"2 zones : gauche et droite":""}</div><div style="margin-left:auto">${z?zonesSvg(z).replace('width="260"','width="190"'):""}</div></div>
+<table><thead><tr><th>Mes 10 services</th><th style="width:130px">Mon score</th></tr></thead><tbody>${rows}</tbody></table>
+<div class="pbc" style="flex-direction:row;align-items:center;gap:30px"><div style="text-align:center;min-width:150px"><div style="font:700 56px/1 'Barlow Condensed',Barlow,sans-serif;color:#c8102e">${D.n?D.all:"–"}</div><div style="font-size:15px">points sur 60</div></div><div style="display:flex;align-items:center;gap:12px">${D.mk>=0?`<span style="width:44px;height:44px;border-radius:50%;background:${L3ML[D.mk][2]};display:block"></span><span style="font-size:24px;font-weight:700">Médaille ${L3ML[D.mk][0].toLowerCase()}</span>`:`<span style="width:44px;height:44px;border-radius:50%;border:4px solid #cfc8c8;box-sizing:border-box;display:block"></span><span style="font-size:20px;font-weight:600">Pas encore de médaille</span>`}</div><div style="margin-left:auto;font-size:13px;color:#6a6061;line-height:1.5">Bronze dès ${L3ML[0][1]} points<br>Argent dès ${L3ML[1][1]} points<br>Or dès ${L3ML[2][1]} points</div></div>
+<div class="pbw" style="margin-top:auto"><span>Mon objectif pour progresser mon service :</span><span class="l"></span></div>
+</div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
+}
+function pbPage4(r){
+  const id=r.id,nx=pbSplit(r.name),D=l4Stats(id);
+  const x=D&&D.started?D.x:null,rows=D?D.bm.map(({mi,m})=>{const pts=10*m.a+m.b;return `<tr><td style="text-align:left"><b>Match ${mi+1}</b> : je suis le boss</td><td>${m.a}</td><td>${m.b}</td><td><b>${pts}</b></td><td>${m.p>=5?"Détrôné":pts>=100?"Gagne !":""}</td></tr>`}).join(""):"";
+  const tile=(v,l)=>`<div style="flex:1 1 0;text-align:center"><div style="font:700 44px/1 'Barlow Condensed',Barlow,sans-serif;color:#c8102e">${v}</div><div style="font-size:14px">${l}</div></div>`;
+  return `<section class="pbp"><div class="pbh">${pbLogo()}<i>Tennis de table · Leçon 4</i><h1>Mon bilan : le Boss des côtés</h1></div><div class="pbb">
+<div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
+<div class="pbc" style="flex-direction:row;align-items:center;gap:24px"><div style="text-align:center;min-width:130px"><div style="font:700 56px/1 'Barlow Condensed',Barlow,sans-serif;color:#c8102e">${D?D.pi+1:"–"}</div><div style="font-size:15px">ma poule</div></div><div style="font-size:16px;line-height:1.45;flex:1 1 auto"><b>${x&&x.nb?"Rang de boss : "+D.rk+(D.rk==1?"er":"e")+" sur "+D.n:"Pas encore de match de boss"}</b><br>Le boss marque 10 points sur une balle placée en zone latérale, 1 point sinon.</div></div>
+<div class="pbc" style="flex-direction:row;gap:10px">${tile(x?x.a:"–","balles à 10 points")}${tile(x?x.pb:"–","points de boss")}${tile(x?x.pp:"–","points prétendant")}${tile(x?x.tot:"–","total")}</div>
+<table><thead><tr><th>Mes matchs de boss</th><th style="width:90px">Balles à 10</th><th style="width:90px">Points à 1</th><th style="width:80px">Points</th><th style="width:100px">Résultat</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="pbt">Aucun match de boss.</td></tr>'}</tbody></table>
+<div class="pbw" style="margin-top:auto"><span>Ce que je retiens pour viser les côtés :</span><span class="l"></span></div>
+</div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
+}
+const pbS={m:false,l:1};
+function pbOpen(){
+  const C=compute(),L2=pbS.l==2,L3=pbS.l==3,L4=pbS.l==4;
   let rs=C.rows.slice().sort((a,b)=>a.name.localeCompare(b.name,"fr"));
-  if(onlyMed)rs=rs.filter(r=>{const md=(S.med&&S.med[r.id])||{};return Object.keys(md).some(e=>md[e]&&MEDL.some((_,k)=>md[e][k]))});
+  if(pbS.m)rs=rs.filter(r=>{if(L4){const d=l4Stats(r.id);return !!(d&&d.started)}if(L3)return l3Stats(r.id).n>0;if(L2)return pbL2(r.id).L.length>0;const md=(S.med&&S.med[r.id])||{};return Object.keys(md).some(e=>md[e]&&MEDL.some((_,k)=>md[e][k]))});
   let d=document.getElementById("pbil");if(!d){d=document.createElement("div");d.id="pbil";document.body.appendChild(d)}
   document.body.style.overflow="hidden";
-  d.innerHTML=`<div class="pbbar"><b>Bilans leçon 1 · ${rs.length} fiche${rs.length>1?"s":""}</b><button type="button" class="btn" data-a="pbprint">Imprimer / PDF</button><button type="button" class="btn sec" data-a="${onlyMed?"pball":"pbmed"}">${onlyMed?"Tous les élèves":"Seulement ceux qui ont une médaille"}</button><button type="button" class="btn sec" data-a="pbclose">Fermer</button></div><p class="pbhint">Touchez « Imprimer / PDF ». Pour obtenir un PDF, choisissez « Enregistrer au format PDF » (ou « Imprimer » puis pincez l’aperçu pour l’agrandir, et Partager › Enregistrer dans Fichiers). Une page par élève.</p>${rs.map(pbPage).join("")||'<p class="pbhint">Aucun élève à afficher.</p>'}`;
+  d.innerHTML=`<div class="pbbar"><b>Bilans leçon ${pbS.l} · ${rs.length} fiche${rs.length>1?"s":""}</b><button type="button" class="btn" data-a="pbprint">Imprimer / PDF</button><button type="button" class="btn sec" data-a="pblec">${"Voir la leçon "+(pbS.l==4?1:pbS.l+1)}</button><button type="button" class="btn sec" data-a="pbfil">${pbS.m?"Tous les élèves":L4?"Seulement ceux qui ont joué":L3?"Seulement ceux qui ont commencé":L2?"Seulement ceux qui ont un essai":"Seulement ceux qui ont une médaille"}</button><button type="button" class="btn sec" data-a="pbclose">Fermer</button></div><p class="pbhint">Touchez « Imprimer / PDF ». Pour obtenir un PDF, choisissez « Enregistrer au format PDF » (ou « Imprimer » puis pincez l’aperçu pour l’agrandir, et Partager › Enregistrer dans Fichiers). Une page par élève.</p>${rs.map(L4?pbPage4:L3?pbPage3:L2?pbPage2:pbPage).join("")||'<p class="pbhint">Aucun élève à afficher.</p>'}`;
   d.scrollTop=0;
 }
 function pbClose(){const d=document.getElementById("pbil");if(d)d.remove();document.body.style.overflow=""}
@@ -697,15 +751,23 @@ function vRecap(C){
   const hd=(k,t)=>`<button type="button" class="btn sec" data-a="tog" data-v="${k}" aria-expanded="${!ui.open[k]}" style="width:100%;text-align:left;font-size:18px">${t} ${ui.open[k]?"▼":"▲"}</button>`;
   const l1=`<div class="card">${hd("rc1","Leçon 1 : Mes médailles")}${ui.open.rc1?"":`<p class="hint">Une médaille par exercice (la meilleure obtenue). ${tm[0]+tm[1]+tm[2]} médaille${tm[0]+tm[1]+tm[2]>1?"s":""} au total dans la classe : ${tm[2]} or, ${tm[1]} argent, ${tm[0]} bronze.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th>${MEDL.slice().reverse().map(l=>`<th class="n">${dotm(l[2])}${l[0]}</th>`).join("")}<th class="n">Total</th></tr></thead><tbody>${mrows.map(x=>`<tr><td><div class="who">${av(P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n">${x.c[2]||"–"}</td><td class="n">${x.c[1]||"–"}</td><td class="n">${x.c[0]||"–"}</td><td class="n"><b>${x.t}</b></td></tr>`).join("")}</tbody></table></div>`}</div>`;
+  const s3=C.rows.map(r=>({r,...l3Stats(r.id)})).sort((a,b)=>b.all-a.all||a.r.name.localeCompare(b.r.name,"fr"));
+  const c3=[0,1,2].map(k=>s3.filter(x=>x.mk==k).length),n3=s3.filter(x=>x.n>0).length;
+  const l3r=`<div class="card">${hd("rc4","Leçon 3 : Le service-cible")}${ui.open.rc4?"":`<p class="hint">Trois séries de 10 services, notées sur 20 chacune (60 au total). Bronze dès 20 points, argent dès 35, or dès 50. ${n3} élève${n3>1?"s":""} sur ${s3.length} ${n3>1?"ont":"a"} commencé : ${c3[2]} or, ${c3[1]} argent, ${c3[0]} bronze.</p>
+<div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Table</th><th class="n">Série 1</th><th class="n">Série 2</th><th class="n">Série 3</th><th class="n">Total / 60</th><th>Médaille</th></tr></thead><tbody>${s3.map(x=>`<tr><td><div class="who">${av(P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n">${x.tb||"–"}</td>${x.t.map(q=>`<td class="n">${q.n?q.a:"–"}</td>`).join("")}<td class="n"><b>${x.n?x.all:"–"}</b></td><td>${x.mk>=0?`${dotm(L3ML[x.mk][2])}${L3ML[x.mk][0]}`:"–"}</td></tr>`).join("")}</tbody></table></div>`}</div>`;
+  const s4=C.rows.map(r=>({r,d:l4Stats(r.id)})).sort((a,b)=>(b.d&&b.d.started?b.d.x.a:-1)-(a.d&&a.d.started?a.d.x.a:-1)||(b.d?b.d.x.pb:-1)-(a.d?a.d.x.pb:-1)||a.r.name.localeCompare(b.r.name,"fr"));
+  const n4=s4.filter(x=>x.d&&x.d.started).length;
+  const l4r=`<div class="card">${hd("rc5","Leçon 4 : Le Boss des côtés")}${ui.open.rc5?"":(S.l4g&&S.l4g.g&&S.l4g.g.length?`<p class="hint">Le boss marque 10 points sur une balle placée en zone latérale, 1 point sinon. Le meilleur boss est celui qui a le plus de balles à 10 points. ${n4} élève${n4>1?"s":""} sur ${s4.length} ${n4>1?"ont":"a"} commencé.</p>
+<div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Poule</th><th class="n">Balles à 10</th><th class="n">Points de boss</th><th class="n">Points prétendant</th><th class="n">Total</th><th class="n">Rang de boss</th></tr></thead><tbody>${s4.map(({r,d})=>`<tr><td><div class="who">${av(P(r.id),"s")}<span>${esc(r.name)}</span></div></td>${d?`<td class="n">${d.pi+1}</td><td class="n"><b>${d.started?d.x.a:"–"}</b></td><td class="n">${d.started?d.x.pb:"–"}</td><td class="n">${d.started?d.x.pp:"–"}</td><td class="n">${d.started?d.x.tot:"–"}</td><td class="n">${d.x.nb?d.rk+" / "+d.n:"–"}</td>`:`<td class="n">–</td><td class="n">–</td><td class="n">–</td><td class="n">–</td><td class="n">–</td><td class="n">–</td>`}</tr>`).join("")}</tbody></table></div>`:`<p class="empty">Les poules de la leçon 4 ne sont pas encore créées (onglet Tournoi).</p>`)}</div>`;
   const fr=x=>x.toFixed(1).replace(".",",");
   const nrows=C.rows.map(r=>{const N=nivOf(r.id),ok=N.filter(Boolean),g=ok.length?ok.reduce((s,x)=>s+x.avg,0)/ok.length:null;return {r,N,g}}).sort((a,b)=>(b.g||0)-(a.g||0)||a.r.name.localeCompare(b.r.name,"fr"));
   const cell=x=>x?`${LV[Math.round(x.avg)-1]}<br><small>${fr(x.avg)}/5 · ${x.n} obs.</small>`:"–";
   const nobs=nrows.filter(x=>x.g!=null).length;
   const l3=`<div class="card">${hd("rc3","Bilan du niveau des joueurs")}${ui.open.rc3?"":`<p class="hint">Moyenne des fiches d’observation remplies par les coachs pendant les tournois (tous tournois confondus). ${nobs} joueur${nobs>1?"s":""} observé${nobs>1?"s":""} sur ${nrows.length}.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th>${STK.map(s=>`<th>${s[1]}</th>`).join("")}<th>Niveau général</th><th>Commentaire</th></tr></thead><tbody>${nrows.map(x=>`<tr><td><div class="who">${av(P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td>${x.N.map(v=>`<td>${cell(v)}</td>`).join("")}<td>${x.g!=null?`<b>${LV[Math.round(x.g)-1]}</b><br><small>${fr(x.g)}/5</small>`:"–"}</td><td style="min-width:240px;font-size:14px;line-height:1.35">${esc(commentOf(x.r.id))}</td></tr>`).join("")}</tbody></table></div>`}</div>`;
-  const pbtn=`<div class="card"><button type="button" class="btn" data-a="pbil">Imprimer les bilans (PDF)</button><p class="hint">Une fiche bilan de la leçon 1 par élève, préremplie avec ses médailles, à imprimer ou à enregistrer en PDF.</p></div>`;
+  const pbtn=`<div class="card"><button type="button" class="btn" data-a="pbil">Imprimer les bilans leçon 1 (PDF)</button> <button type="button" class="btn" data-a="pbil2">Imprimer les bilans leçon 2 (PDF)</button> <button type="button" class="btn" data-a="pbil3">Imprimer les bilans leçon 3 (PDF)</button> <button type="button" class="btn" data-a="pbil4">Imprimer les bilans leçon 4 (PDF)</button><p class="hint">Une fiche bilan par élève : médailles pour la leçon 1, record d’échanges, partenaires et essais pour la leçon 2, séries et médaille du service-cible pour la leçon 3, balles à 10 points et rang de boss pour la leçon 4, à imprimer ou à enregistrer en PDF.</p></div>`;
   return pbtn+l1+`<div class="card">${hd("rc2","Leçon 2 : Mon meilleur ami")}${ui.open.rc2?"":`<p class="hint">${tot} échange${tot>1?"s":""} enregistré${tot>1?"s":""}. Le record d’un élève est son meilleur échange, avec n’importe quel partenaire. « Partenaire d’un record » compte les personnes dont l’élève était le partenaire lors de leur record.</p>
-<div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Record</th><th>Avec</th><th class="n">Essais</th><th class="n">Partenaire d’un record</th></tr></thead><tbody>${rows.map(x=>`<tr><td><div class="who">${av(x.r&&P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n"><b>${x.best||"–"}</b></td><td>${x.w.length?esc(x.w.join(", ")):"–"}</td><td class="n">${x.essais}</td><td class="n">${x.pc}</td></tr>`).join("")}</tbody></table></div>`}</div>`+l3;
+<div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Record</th><th>Avec</th><th class="n">Essais</th><th class="n">Partenaire d’un record</th></tr></thead><tbody>${rows.map(x=>`<tr><td><div class="who">${av(x.r&&P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n"><b>${x.best||"–"}</b></td><td>${x.w.length?esc(x.w.join(", ")):"–"}</td><td class="n">${x.essais}</td><td class="n">${x.pc}</td></tr>`).join("")}</tbody></table></div>`}</div>`+l3r+l4r+l3;
 }
 function nivOf(id){
   const A=STK.map(()=>({s:0,n:0}));
@@ -769,7 +831,7 @@ function vJoueur(C){
   if(p&&r){
     const ms=C.log.filter(m=>m.wi==p.id||m.li==p.id).reverse();
     body=`<div class="st">${av(p,"l")}<div><b style="font-size:20px">${esc(p.name)}</b><br>Rang ${r.rank}, <b>${r.pts} pts</b> (<span class="${cl(r.pts-r.init)}">${sg(r.pts-r.init)}</span>)<br><small>${r.m} match${r.m>1?"s":""} : ${r.w} victoire${r.w>1?"s":""}, ${r.l} défaite${r.l>1?"s":""}</small></div></div>`+vPts(p.id)+vBilan(p.id,C)+vEvol(p.id)+vEvolD(p.id)
-    +(ms.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Adversaire</th><th>Résultat</th><th class="n">Son rang</th><th class="n">Points</th></tr></thead><tbody>${ms.map(m=>{const win=m.wi==p.id,pt=win?m.pw:m.pl;return `<tr><td>${fd(m.date)}</td><td><div class="who">${av(P(win?m.li:m.wi),"s")}<span>${esc(win?m.ln:m.wn)} <small>(rang ${win?m.rl:m.rw})</small></span></div></td><td class="${win?"pos":"neg"}">${win?"Victoire":"Défaite"}</td><td class="n">${win?m.rw:m.rl}</td><td class="n ${cl(pt)}">${sg(pt)}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="empty">Aucun match joué pour l’instant.</p>`)+vMed(p.id,C)+vLecon2(p.id,C);
+    +(ms.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Adversaire</th><th>Résultat</th><th class="n">Son rang</th><th class="n">Points</th></tr></thead><tbody>${ms.map(m=>{const win=m.wi==p.id,pt=win?m.pw:m.pl;return `<tr><td>${fd(m.date)}</td><td><div class="who">${av(P(win?m.li:m.wi),"s")}<span>${esc(win?m.ln:m.wn)} <small>(rang ${win?m.rl:m.rw})</small></span></div></td><td class="${win?"pos":"neg"}">${win?"Victoire":"Défaite"}</td><td class="n">${win?m.rw:m.rl}</td><td class="n ${cl(pt)}">${sg(pt)}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="empty">Aucun match joué pour l’instant.</p>`)+vMed(p.id,C)+vLecon2(p.id,C)+vLecon3(p.id)+vLecon4(p.id);
   }
   return `<div class="card"><h2>Matchs d’un joueur</h2><label for="spj">Joueur</label><select id="spj" data-ch="pj">${opts}</select><div style="margin-top:14px">${body}</div></div>`;
 }
@@ -956,7 +1018,7 @@ function nextGroups(tour,kind){
   }
   return {pl,moves,notes};
 }
-function vTournoi(C){
+function vTournoi0(C){
   const T=TR(),pres=C.rows.filter(r=>!ui.ab[r.id]),sz=tourSizes(pres.length,ui.ts);
   const desc=a=>{const c={};a.forEach(m=>{c[m]=(c[m]||0)+1});return Object.keys(c).sort((x,y)=>y-x).map(k=>`${c[k]} table${c[k]>1?"s":""} de ${k}`).join(", ")};
   const crea=`<div class="card"><h2>${T?"Refaire les tables de ce tournoi":"Créer les tables du tournoi 1"}</h2><p class="hint">Les tables sont formées d’après le classement des Défis à cet instant : la table 1 réunit les mieux classés, la dernière table les moins bien classés. Elles restent ensuite figées, même si le classement des Défis change. Pour exclure des absents, décochez-les dans l’onglet Groupements (${pres.length} joueurs présents).</p>
@@ -975,6 +1037,131 @@ ${sz?`<p class="hint">${desc(sz)}.</p>`:`<p class="warn">Impossible de former de
   if(MODE.on)return tours+mv+tabs+vTable(tb,ui.tt);
   return tours+mv+tabs+vTable(tb,ui.tt)+obsCard+next+crea;
 }
+
+/* ===== Leçon 3 : Le service-cible (fiche élève) ===== */
+const zonesOf=t=>t<=2?4:t<=7?3:2;
+function l3Table(id){
+  const o=(S.l3s&&S.l3s[id])||{};if(o.t)return {t:o.t,auto:false};
+  const T=S.tours&&S.tours.length?S.tours[S.tours.length-1]:null,k=T?T.tables.findIndex(tb=>tb.pl.includes(id)):-1;
+  return {t:k>=0?k+1:0,auto:true};
+}
+function zonesSvg(n){
+  const W=240,H=120,L=n==4?[[0,0],[1,0],[0,1],[1,1]]:n==3?[[0,0],[1,0],[2,0]]:[[0,0],[1,0]],cw=n==4?W/2:W/n,rh=n==4?H/2:H,nm4=["Arrière gauche","Arrière droite","Avant gauche","Avant droite"],nm3=["Gauche","Milieu","Droite"],nm2=["Gauche","Droite"],T=n==4?nm4:n==3?nm3:nm2;
+  const oy=18;
+  return `<svg viewBox="0 0 ${W+4} ${H+oy+34}" width="260" role="img" aria-label="${n} zones sur la table adverse, filet en bas" style="display:block;max-width:100%"><text x="${2+W/2}" y="13" text-anchor="middle" font-size="12" fill="#6a6061">Arrière de la table</text><rect x="2" y="${oy}" width="${W}" height="${H}" fill="#e6f0e6" stroke="#241c1d" stroke-width="2"/>${L.map(([c,r],i)=>`<rect x="${2+c*cw}" y="${oy+r*rh}" width="${cw}" height="${rh}" fill="none" stroke="#241c1d" stroke-width="1.5"/><text x="${2+c*cw+cw/2}" y="${oy+r*rh+rh/2+5}" text-anchor="middle" font-size="14" font-weight="600" fill="#241c1d">${T[i]}</text>`).join("")}<rect x="-2" y="${oy+H+2}" width="${W+8}" height="8" fill="#241c1d"/><path d="M2 ${oy+H+10}v8M${2+W/4} ${oy+H+10}v8M${2+W/2} ${oy+H+10}v8M${2+3*W/4} ${oy+H+10}v8M${2+W} ${oy+H+10}v8" stroke="#241c1d" stroke-width="1.5"/><text x="${2+W/2}" y="${oy+H+32}" text-anchor="middle" font-size="12" fill="#6a6061">Filet, avant (le serveur est de ce côté)</text></svg>`;
+}
+
+const L3ML=[["Bronze",20,"#b9733c"],["Argent",35,"#a9afb5"],["Or",50,"#d9a520"]];
+function l3Stats(id){
+  const o=(S.l3s&&S.l3s[id])||{},r=o.r||{},tb=l3Table(id);
+  const t=[0,1,2].map(sr=>{let a=0,n=0;for(let k=0;k<10;k++){const v=r[sr+"_"+k];if(v!=null){a+=v;n++}}return {a,n}});
+  const all=t.reduce((x,y)=>x+y.a,0),n=t.reduce((x,y)=>x+y.n,0);
+  return {t,all,n,tb:tb.t,mk:L3ML.reduce((m,l,i)=>all>=l[1]?i:m,-1)};
+}
+function vLecon3(id){
+  const op=!!ui.open.lecon3,o=(S.l3s&&S.l3s[id])||{r:{}},r=o.r||{},tb=l3Table(id),z=tb.t?zonesOf(tb.t):0;
+  const tot=[0,1,2].map(sr=>{let t=0,n=0;for(let k=0;k<10;k++){const v=r[sr+"_"+k];if(v!=null){t+=v;n++}}return {t,n}}),all=tot.reduce((a,b)=>a+b.t,0),nn=tot.reduce((a,b)=>a+b.n,0);
+  const SR=["Série 1 : je choisis ma zone avant chaque service","Série 2 : le juge choisit la zone","Série 3 : le juge choisit la zone"];
+  const ML=[["Bronze",20,"#b9733c"],["Argent",35,"#a9afb5"],["Or",50,"#d9a520"]],mk=ML.reduce((m,l,i)=>all>=l[1]?i:m,-1);
+  const slot=(sr,k)=>{const v=r[sr+"_"+k];return `<button type="button" data-a="l3k" data-v="${sr},${k}" aria-label="Série ${sr+1}, service ${k+1} : ${v==null?"à noter":v+" point"+(v>1?"s":"")}" style="min-width:52px;min-height:52px;padding:4px;font-weight:700;font-size:20px;line-height:1;border:2px solid #241c1d;border-radius:10px;cursor:pointer;color:${v==2?"#fff":"#241c1d"};background:${v==null?"#fff":v==0?"#e4dddd":v==1?"#d9a520":"#2e7d32"}">${v==null?"–":v}</button>`};
+  const opts=Array.from({length:10},(_,i)=>`<option value="${i+1}"${tb.t==i+1?" selected":""}>Table ${i+1}</option>`).join("");
+  const body=`<h3>Le service-cible</h3><p class="hint">Situation à trois par table : un serveur, un juge de la zone et un secrétaire. Les rôles tournent à chaque série. Le serveur fait 10 services d’affilée. À la série 1, il choisit lui-même sa zone et l’annonce avant chaque service. Aux séries 2 et 3, c’est le juge qui choisit la zone et l’annonce avant chaque service. Le juge dit ensuite où la balle tombe et le secrétaire note les points ci-dessous.</p>
+<p class="hint"><b>2 points</b> si la balle tombe dans la zone annoncée, <b>1 point</b> dans une zone voisine, <b>0</b> si c’est une faute. Maximum : 20 points par série, 60 au total. Touchez une case : 2, puis 1, 0, puis vide.</p>
+<div class="row" style="align-items:flex-end"><div><label for="l3t">Ma table</label><select id="l3t" data-ch="l3t"><option value="">${tb.t&&tb.auto?"Table "+tb.t+" (d’après le dernier tournoi)":"Choisir ma table"}</option>${opts}</select></div></div>
+${z?`<p style="margin:10px 0"><b>${z} zones à viser :</b></p>${zonesSvg(z)}<p class="hint">Gauche et droite sont vues depuis le côté du serveur, filet devant lui.</p>`:`<p class="hint">Choisissez votre table pour voir le nombre de zones : 4 zones aux tables 1 et 2, 3 zones aux tables 3 à 7, 2 zones aux tables 8 à 10.</p>`}
+${[0,1,2].map(sr=>`<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${SR[sr]}</b><span style="font-size:18px;font-weight:700">${tot[sr].t} / 20</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${Array.from({length:10},(_,k)=>slot(sr,k)).join("")}</div></div>`).join("")}
+<div style="display:flex;flex-wrap:wrap;gap:10px"><div class="side" style="text-align:center;flex:1 1 150px"><div style="font-size:34px;font-weight:700">${all} / 60</div><div>Mon total</div></div><div class="side" style="text-align:center;flex:1 1 150px">${mk>=0?`<span style="display:inline-block;width:34px;height:34px;border-radius:50%;background:${ML[mk][2]}"></span><div style="font-size:24px;font-weight:700">${ML[mk][0]}</div>`:`<span style="display:inline-block;width:34px;height:34px;border-radius:50%;border:4px solid #cfc8c8;box-sizing:border-box"></span><div style="font-size:18px;font-weight:700">Pas encore de médaille</div>`}<div class="hint">Bronze dès ${ML[0][1]} pts, argent dès ${ML[1][1]}, or dès ${ML[2][1]}</div></div></div>`;
+  return `<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="lecon3" aria-expanded="${op}">Leçon 3${nn?` · ${all} / 60${mk>=0?" · "+ML[mk][0].toLowerCase():""}`:""} ${op?"▲":"▼"}</button>${op?`<div style="margin-top:6px">${body}</div>`:""}</div>`;
+}
+
+/* ===== Leçon 4 : Jouer dans la latéralité, le Boss des côtés ===== */
+const L4N="ABCD",L4R4=[[0,[1,2],3],[1,[3,0],2],[2,[1,3],0],[3,[0,2],1],[0,[1,3],2],[1,[2,3],0],[2,[0,1],3],[3,[0,2],1]],L4R3=[[0,[1,2],-1],[1,[0,2],-1],[2,[0,1],-1]];
+const L4R=n=>n==3?L4R3:L4R4;
+function l4Match(g,mi){const r=g.r||{};return {a:r[mi+"_a"]||0,b:r[mi+"_b"]||0,p:r[mi+"_p"]||0}}
+function l4Rank(g){
+  const R=g.pl.map(id=>({id,a:0,pb:0,pp:0,nb:0}));
+  L4R(g.pl.length).forEach(([bo,pr],mi)=>{const m=l4Match(g,mi);R[bo].a+=m.a;R[bo].pb+=10*m.a+m.b;if(m.a||m.b||m.p)R[bo].nb++;pr.forEach(i=>{R[i].pp+=m.p})});
+  R.forEach(x=>{x.tot=x.pb+x.pp});
+  return R.slice().sort((x,y)=>y.a-x.a||y.pb-x.pb||y.tot-x.tot||nm(x.id).localeCompare(nm(y.id),"fr"));
+}
+function lateralSvg(){
+  const W=240,H=120,oy=18,zw=56,t=(x,y,l)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="11" font-weight="700" fill="#241c1d">${l}</text>`;
+  return `<svg viewBox="0 0 ${W+4} ${H+oy+34}" width="260" role="img" aria-label="Table du boss avec deux zones latérales à gauche et à droite" style="display:block;max-width:100%"><text x="${2+W/2}" y="13" text-anchor="middle" font-size="12" fill="#6a6061">Arrière de la table du boss</text><rect x="2" y="${oy}" width="${W}" height="${H}" fill="#e6f0e6" stroke="#241c1d" stroke-width="2"/><rect x="2" y="${oy}" width="${zw}" height="${H}" fill="#f6d9de" stroke="#c8102e" stroke-width="2"/><rect x="${2+W-zw}" y="${oy}" width="${zw}" height="${H}" fill="#f6d9de" stroke="#c8102e" stroke-width="2"/>${t(2+zw/2,oy+H/2-4,"Zone")}${t(2+zw/2,oy+H/2+12,"latérale")}${t(2+W-zw/2,oy+H/2-4,"Zone")}${t(2+W-zw/2,oy+H/2+12,"latérale")}<text x="${2+W/2}" y="${oy+H/2+5}" text-anchor="middle" font-size="14" font-weight="600" fill="#241c1d">1 point</text><rect x="-2" y="${oy+H+2}" width="${W+8}" height="8" fill="#241c1d"/><text x="${2+W/2}" y="${oy+H+32}" text-anchor="middle" font-size="12" fill="#6a6061">Filet</text></svg>`;
+}
+function vL4(C){
+  const op=!!ui.open.l4,L=S.l4g,head=`<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="l4" aria-expanded="${op}">Leçon 4 · Jouer dans la latéralité : le Boss des côtés ${op?"▲":"▼"}</button>`;
+  if(!op)return head+"</div>";
+  const pres=C.rows.filter(r=>!ui.ab[r.id]),sz=tourSizes(pres.length,4);
+  const rules=`<div class="card"><h2>Le Boss des côtés</h2><p><b>But :</b> viser les zones latérales pour déstabiliser l’adversaire. Un joueur, le <b>boss</b>, joue un match contre 2 <b>prétendants</b> qui jouent chacun leur tour, avec la règle du double. Le 4ème élève de la poule est l’<b>arbitre</b> et compte les points. Sur la demi-table des prétendants, deux zones latérales sont marquées.</p>
+<ul><li>Le boss sert tout le temps.</li><li>Il marque <b>10 points</b> si son dernier impact de balle est dans une zone latérale, et <b>1 point</b> pour tous les autres points.</li><li>Il vise le maximum de points avant d’être détrôné : le match s’arrête quand les prétendants ont marqué <b>5 points</b>, ou quand le boss atteint <b>100 points</b> ou plus (il peut finir à 109 s’il marque sur une balle latérale à 99).</li></ul>
+${lateralSvg()}<p class="hint">Chacun passe plusieurs fois dans tous les rôles, notamment boss. À la fin, le meilleur boss du groupe est celui qui a le plus d’actions à 10 points. Variantes : un handicap pour les prétendants (viser une zone restreinte ou le centre de la table du boss).</p></div>`;
+  if(!L||!L.g||!L.g.length){
+    const c=MODE.on||LINK?`<div class="card"><p class="empty">Les poules ne sont pas encore créées.</p></div>`:`<div class="card"><h2>Créer les poules</h2><p class="hint">Les poules sont formées d’après le classement des Défis à cet instant : la poule 1 réunit les mieux classés, la dernière poule les moins bien classés. Elles restent ensuite figées. Pour exclure des absents, décochez-les dans l’onglet Joueurs.</p>${sz?`<p class="hint">${[...new Set(sz)].sort((a,b)=>b-a).map(k=>sz.filter(x=>x==k).length+" poule"+(sz.filter(x=>x==k).length>1?"s":"")+" de "+k).join(", ")}.</p>`:`<p class="warn">Impossible de former des poules de 3 ou 4 avec ${pres.length} joueurs présents.</p>`}<p><button class="btn" data-a="l4gen">Créer les poules</button></p></div>`;
+    return head+'<div style="margin-top:6px">'+rules+c+"</div></div>";
+  }
+  const pi=Math.min(ui.l4p||0,L.g.length-1),g=L.g[pi],M=L4R(g.pl.length),R=l4Rank(g);
+  const chips=`<div class="card"><h2>Poules (${fd(L.d)})</h2><div class="chips">${L.g.map((_,k)=>`<button class="btn sec sm${pi==k?" on":""}" data-a="l4p" data-v="${k}">Poule ${k+1}</button>`).join("")}</div></div>`;
+  let rk=0;const cls=`<div class="card"><h2>Classement de la poule ${pi+1}</h2><div class="scroll"><table><thead><tr><th>Rang boss</th><th>Joueur</th><th class="n">Balles à 10</th><th class="n">Points de boss</th><th class="n">Points prétendant</th><th class="n">Total</th></tr></thead><tbody>${R.map((x,i)=>{if(i==0||x.a!=R[i-1].a||x.pb!=R[i-1].pb)rk=i+1;return `<tr><td>${x.nb?rk:"–"}</td><td><div class="who">${av(P(x.id),"s")}<span>${esc(nm(x.id))}</span></div></td><td class="n"><b>${x.a}</b></td><td class="n">${x.pb}</td><td class="n">${x.pp}</td><td class="n">${x.tot}</td></tr>`}).join("")}</tbody></table></div><p class="hint">Le meilleur boss est celui qui a marqué le plus d’actions à 10 points. Les poules de 3 jouent 3 matchs, sans arbitre.</p></div>`;
+  const stp=(mi,key,val,lab)=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="flex:1 1 auto">${lab}</span><button type="button" class="btn sec sm" data-a="l4d" data-v="${pi},${mi},${key},-1" aria-label="Moins : ${lab}" style="min-width:52px;min-height:52px;font-size:24px">−</button><b style="min-width:44px;text-align:center;font-size:24px">${val}</b><button type="button" class="btn sec sm" data-a="l4d" data-v="${pi},${mi},${key},1" aria-label="Plus : ${lab}" style="min-width:52px;min-height:52px;font-size:24px">+</button></div>`;
+  const ms=M.map(([bo,pr,ar],mi)=>{const m=l4Match(g,mi),pts=10*m.a+m.b,st=m.p>=5?"r":pts>=100?"v":"",sty=st=="r"?"background:#fbe3e6;border:2px solid #c8102e":st=="v"?"background:#e3f3e5;border:2px solid #2e7d32":"";
+    return `<div class="card" style="${sty}"><h3>Match ${mi+1} : ${esc(nm(g.pl[bo]))} est le boss</h3><p class="hint">Prétendants : ${pr.map(i=>esc(nm(g.pl[i]))).join(" et ")}${ar>=0?" · Arbitre : "+esc(nm(g.pl[ar])):""}</p>${stp(mi,"a",m.a,"Points à 10 (balle placée en zone latérale)")}${stp(mi,"b",m.b,"Points à 1 (autres points)")}${stp(mi,"p",m.p,"Points des prétendants (le boss est détrôné à 5)")}<p style="text-align:right;font-size:18px;margin:6px 0 0"><b>${pts} points</b>${st=="r"?" · boss détrôné":st=="v"?" · le boss gagne !":""}</p></div>`}).join("");
+  const adm=MODE.on||LINK?"":`<div class="card"><p><button class="btn sec" data-a="l4gen" data-c="1">Refaire les poules (efface les résultats)</button> <button class="btn sec" data-a="l4del" data-c="1">Supprimer la leçon 4</button></p></div>`;
+  return head+'<div style="margin-top:6px">'+rules+chips+cls+ms+adm+"</div></div>";
+}
+function l4Stats(id){
+  const L=S.l4g,pi=L&&L.g?L.g.findIndex(g=>g.pl.includes(id)):-1;if(pi<0)return null;
+  const g=L.g[pi],me=g.pl.indexOf(id),M=L4R(g.pl.length),R=l4Rank(g),x=R.find(r=>r.id==id),rk=R.findIndex(r=>r.a==x.a&&r.pb==x.pb)+1;
+  const bm=M.map(([bo],mi)=>bo==me?{mi,m:l4Match(g,mi)}:null).filter(Boolean);
+  return {pi,x,rk,n:R.length,bm,started:x.nb>0||x.pp>0};
+}
+/* Bilan dans la fiche élève */
+function vLecon4(id){
+  const L=S.l4g,pi=L&&L.g?L.g.findIndex(g=>g.pl.includes(id)):-1;if(pi<0)return "";
+  const g=L.g[pi],me=g.pl.indexOf(id),M=L4R(g.pl.length),R=l4Rank(g),x=R.find(r=>r.id==id),rk=R.findIndex(r=>r.a==x.a&&r.pb==x.pb)+1,op=!!ui.open.lecon4;
+  const started=x.nb>0||x.pp>0;
+  const bm=M.map(([bo],mi)=>bo==me?{mi,m:l4Match(g,mi)}:null).filter(Boolean);
+  const body=`<h3>Jouer dans la latéralité : le Boss des côtés</h3><p class="hint">Poule ${pi+1}. Le boss marque 10 points si sa dernière balle tombe dans une zone latérale, et 1 point sinon. Il est détrôné quand les prétendants ont 5 points.</p>
+<div class="sides" style="margin:10px 0;display:flex;flex-wrap:wrap;gap:10px"><div class="side" style="text-align:center;flex:1 1 130px"><div style="font-size:34px;font-weight:700">${x.a}</div><div>Balles à 10 points</div></div><div class="side" style="text-align:center;flex:1 1 130px"><div style="font-size:34px;font-weight:700">${x.pb}</div><div>Points de boss</div></div><div class="side" style="text-align:center;flex:1 1 130px"><div style="font-size:34px;font-weight:700">${x.pp}</div><div>Points prétendant</div></div><div class="side" style="text-align:center;flex:1 1 130px"><div style="font-size:34px;font-weight:700">${x.tot}</div><div>Total</div></div></div>
+<p>${x.nb?`Rang de boss dans la poule : <b>${rk}${rk==1?"er":"e"}</b> sur ${R.length}.`:"Pas encore de match de boss joué."}</p>
+<div class="scroll"><table><thead><tr><th>Match</th><th class="n">Balles à 10</th><th class="n">Points à 1</th><th class="n">Points</th></tr></thead><tbody>${bm.map(({mi,m})=>`<tr><td>Match ${mi+1} (boss)</td><td class="n">${m.a}</td><td class="n">${m.b}</td><td class="n"><b>${10*m.a+m.b}</b>${m.p>=5?" · détrôné":10*m.a+m.b>=100?" · gagne !":""}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="lecon4" aria-expanded="${op}">Leçon 4${started?` · ${x.tot} pts`:""} ${op?"▲":"▼"}</button>${op?`<div style="margin-top:6px">${body}</div>`:""}</div>`;
+}
+/* ===== Leçon 3 : Jeu des 1000 points (Tournoi) ===== */
+const L3P=[0,10,100,1000],L3M=n=>n==3?[[0,1],[0,2],[1,2]]:[[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+function l3side(g,mi,sd){let t=0,n=0;for(let k=0;k<5;k++){const v=(g.r||{})[mi+"_"+sd+"_"+k];if(v!=null){t+=L3P[v];n++}}return {t,n}}
+function l3rank(g){
+  const R=g.pl.map(id=>({id,t:0,n:0,c:[0,0,0,0],w:0}));
+  L3M(g.pl.length).forEach(([a,b],mi)=>{
+    [[a,0],[b,1]].forEach(([pi,sd])=>{for(let k=0;k<5;k++){const v=(g.r||{})[mi+"_"+sd+"_"+k];if(v!=null){R[pi].t+=L3P[v];R[pi].c[v]++;R[pi].n++}}});
+    const A=l3side(g,mi,0),B=l3side(g,mi,1);if(A.n==5&&B.n==5){if(A.t>B.t)R[a].w++;else if(B.t>A.t)R[b].w++}
+  });
+  return R.slice().sort((x,y)=>y.t-x.t||nm(x.id).localeCompare(nm(y.id),"fr"));
+}
+function vL3(C){
+  const op=!!ui.open.l3,L=S.l3,head=`<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="l3" aria-expanded="${op}">Leçon 3 · Jeu des 1000 points ${op?"▲":"▼"}</button>`;
+  if(!op)return head+"</div>";
+  const pres=C.rows.filter(r=>!ui.ab[r.id]),sz=tourSizes(pres.length,4);
+  const rules=`<div class="card"><h2>Le jeu des 1000 points</h2><p><b>But :</b> gagner le tournoi de sa poule, en construisant un projet de jeu dès le service : un service qui gêne l’adversaire, puis un 2ème coup d’attaque.</p>
+<p>Un match dure 10 points : A fait 5 services, puis B fait 5 services. Quand on sert, l’adversaire ne peut pas marquer. Sur chaque service, on marque :</p>
+<ul><li><b>1000 points</b> si on gagne l’échange en 1 ou 2 frappes (service gagnant ou 2ème coup),</li><li><b>100 points</b> en 3 frappes,</li><li><b>10 points</b> en 4 frappes ou plus,</li><li><b>0 point</b> si on perd l’échange.</li></ul>
+<p class="hint">Les autres joueurs de la poule arbitrent et tiennent la feuille de marque : l’arbitre se concentre sur le serveur et compte à voix haute ses frappes. Variante : un 2ème service en cas de service raté.</p></div>`;
+  let body=rules;
+  if(!L||!L.g||!L.g.length){
+    body+=MODE.on||LINK?`<div class="card"><p class="empty">Les poules ne sont pas encore créées.</p></div>`:`<div class="card"><h2>Créer les poules</h2><p class="hint">Les poules sont formées d’après le classement des Défis à cet instant : la poule 1 réunit les mieux classés, la dernière poule les moins bien classés. Elles restent ensuite figées. Pour exclure des absents, décochez-les dans l’onglet Joueurs.</p>${sz?`<p class="hint">${[...new Set(sz)].sort((a,b)=>b-a).map(k=>sz.filter(x=>x==k).length+" poule"+(sz.filter(x=>x==k).length>1?"s":"")+" de "+k).join(", ")}.</p>`:`<p class="warn">Impossible de former des poules de 3 ou 4 avec ${pres.length} joueurs présents.</p>`}<p><button class="btn" data-a="l3gen"${sz?"":" disabled"}>Créer les poules</button></p></div>`;
+    return head+"<div style=\"margin-top:6px\">"+body+"</div></div>";
+  }
+  const pi=Math.min(ui.l3p||0,L.g.length-1),g=L.g[pi],M=L3M(g.pl.length),R=l3rank(g);
+  const chips=`<div class="card"><h2>Poules (${fd(L.d)})</h2><div class="chips">${L.g.map((_,k)=>`<button class="btn sec sm${pi==k?" on":""}" data-a="l3p" data-v="${k}">Poule ${k+1}</button>`).join("")}</div></div>`;
+  let rk=0;const cls=`<div class="card"><h2>Classement de la poule ${pi+1}</h2><div class="scroll"><table><thead><tr><th>Rang</th><th>Joueur</th><th class="n">Points</th><th class="n">1000</th><th class="n">100</th><th class="n">10</th><th class="n">0</th><th class="n">Victoires</th></tr></thead><tbody>${R.map((x,i)=>{if(i==0||x.t!=R[i-1].t)rk=i+1;return `<tr><td>${x.n?rk:"–"}</td><td><div class="who">${av(P(x.id),"s")}<span>${esc(nm(x.id))}</span></div></td><td class="n"><b>${x.t}</b></td><td class="n">${x.c[3]}</td><td class="n">${x.c[2]}</td><td class="n">${x.c[1]}</td><td class="n">${x.c[0]}</td><td class="n">${x.w}</td></tr>`}).join("")}</tbody></table></div><p class="hint">Classement au total de points marqués sur les services (maximum 5 000 par match). Touchez une case pour noter le résultat d’un service : 1000, puis 100, 10, 0, puis vide.</p></div>`;
+  const colr=["#e4dddd","var(--neg)","#d9a520","var(--pos)"];
+  const slot=(mi,sd,k)=>{const v=(g.r||{})[mi+"_"+sd+"_"+k],lab=v==null?"–":L3P[v];return `<button type="button" data-a="l3s" data-v="${pi},${mi},${sd},${k}" aria-label="Service ${k+1} : ${v==null?"à noter":L3P[v]+" points"}" style="min-width:68px;min-height:56px;padding:4px 8px;font-weight:700;font-size:20px;line-height:1;border:2px solid #241c1d;border-radius:10px;cursor:pointer;color:${v==null||v==2?"#241c1d":"#fff"};background:${v==null?"#fff":v==0?"#6a6061":v==1?"#a9afb5":v==2?"#d9a520":"#2e7d32"}">${lab}</button>`};
+  const ms=M.map(([a,b],mi)=>{const A=l3side(g,mi,0),B=l3side(g,mi,1),done=A.n==5&&B.n==5;
+    const line=(id,sd,S_)=>`<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${esc(nm(id))} sert 5 fois</b><span style="font-size:20px;font-weight:700">${S_.t} pts</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${[0,1,2,3,4].map(k=>slot(mi,sd,k)).join("")}</div></div>`;
+    return `<div class="card"><h3>Match ${mi+1} : ${esc(nm(g.pl[a]))} contre ${esc(nm(g.pl[b]))}</h3>${line(g.pl[a],0,A)}${line(g.pl[b],1,B)}${done?`<p class="hint"><b>${A.t==B.t?"Égalité":esc(nm(g.pl[A.t>B.t?a:b]))+" gagne"}</b> : ${A.t} à ${B.t}.</p>`:""}</div>`}).join("");
+  const adm=MODE.on||LINK?"":`<div class="card"><p><button class="btn sec" data-a="l3gen" data-c="1">Refaire les poules (efface les résultats)</button> <button class="btn sec" data-a="l3del" data-c="1">Supprimer la leçon 3</button></p></div>`;
+  return head+"<div style=\"margin-top:6px\">"+rules+chips+cls+ms+adm+"</div></div>";
+}
+function vTournoi(C){return vL3(C)+vL4(C)+vTournoi0(C)}
 function render(){
   mig();
   if(LINK&&!S.players.length){$("#ti").value=S.title;$("#ti").readOnly=true;$("#nav").innerHTML="";$("#app").innerHTML=`<div class="card"><p class="empty">${DBURL?"Connexion à la classe…":"Lien incomplet : demandez à votre enseignant de vous montrer à nouveau le QR code."}</p></div>`;$("#ft").textContent=netMsg;return}
@@ -991,8 +1178,12 @@ function render(){
 
 function act(a,v){
   if(MODE.on&&!STUA.includes(a))return;
-  if(a=="pbil"||a=="pball"){pbOpen(false);return}
-  if(a=="pbmed"){pbOpen(true);return}
+  if(a=="pbil"){pbS.l=1;pbS.m=false;pbOpen();return}
+  if(a=="pbil2"){pbS.l=2;pbS.m=false;pbOpen();return}
+  if(a=="pbil3"){pbS.l=3;pbS.m=false;pbOpen();return}
+  if(a=="pbil4"){pbS.l=4;pbS.m=false;pbOpen();return}
+  if(a=="pblec"){pbS.l=pbS.l==4?1:pbS.l+1;pbS.m=false;pbOpen();return}
+  if(a=="pbfil"){pbS.m=!pbS.m;pbOpen();return}
   if(a=="pbclose"){pbClose();return}
   if(a=="pbprint"){window.print();return}
   if(a!="rec")ui.flash="";
@@ -1000,6 +1191,25 @@ function act(a,v){
   if(a=="tab"){ui.tab=v;try{location.hash=v}catch(e){}}
   else if(a=="ttab"){ui.tt=+v;ui.tm=0}
   else if(a=="tmat")ui.tm=+v;
+  else if(a=="l4d"){const [pi,mi,key,d]=v.split(","),g=S.l4g&&S.l4g.g[+pi];if(g&&/^(a|b|p)$/.test(key)){const r=g.r||{},cur=r[mi+"_"+key]||0;let nv=Math.max(0,cur+ +d);
+    if(key=="p")nv=Math.min(nv,5);else if(+d>0){const tot=10*(r[mi+"_a"]||0)+(r[mi+"_b"]||0);if(tot>=100)nv=cur}
+    E({t:"l4m",i:+pi,mi:+mi,key,v:nv})}}
+  else if(a=="l4p"){ui.l4p=+v}
+  else if(a=="l4gen"){
+    const pres=C.rows.filter(r=>!ui.ab[r.id]),sz=tourSizes(pres.length,4);
+    if(!sz){alert("Impossible de former des poules de 3 ou 4 avec cet effectif.");return}
+    let i=0;S.l4g={d:today(),g:sz.map(m=>{const pl=pres.slice(i,i+m).map(r=>r.id);i+=m;return {pl,r:{}}})};ui.l4p=0;ui.open.l4=true;
+  }
+  else if(a=="l4del"){delete S.l4g;ui.l4p=0}
+  else if(a=="l3k"){const [sr,k]=v.split(",").map(Number);if(P(ui.pj)){const cur=(((S.l3s||{})[ui.pj]||{}).r||{})[sr+"_"+k];E({t:"l3k",pid:+ui.pj,s:sr,k,v:cur==null?2:cur==0?null:cur-1})}}
+  else if(a=="l3s"){const [i,mi,sd,k]=v.split(",").map(Number),g=S.l3&&S.l3.g[i];if(g){const cur=(g.r||{})[mi+"_"+sd+"_"+k];E({t:"l3",i,mi,sd,k,v:cur==null?3:cur==0?null:cur-1})}}
+  else if(a=="l3p"){ui.l3p=+v}
+  else if(a=="l3gen"){
+    const pres=C.rows.filter(r=>!ui.ab[r.id]),sz=tourSizes(pres.length,4);
+    if(!sz){alert("Impossible de former des poules de 3 ou 4 avec cet effectif.");return}
+    let i=0;S.l3={d:today(),g:sz.map(m=>{const pl=pres.slice(i,i+m).map(r=>r.id);i+=m;return {pl,r:{}}})};ui.l3p=0;ui.open.l3=true;
+  }
+  else if(a=="l3del"){delete S.l3;ui.l3p=0}
   else if(a=="tcreate"){
     const pres=C.rows.filter(r=>!ui.ab[r.id]),sz=tourSizes(pres.length,ui.ts);
     if(!sz){alert("Impossible de former des tables de 3 ou 4 avec cet effectif.");return}
@@ -1082,6 +1292,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{
   const t=e.target,k=t.dataset.ch;if(!k)return;
   if(MODE.on&&!STUC.includes(k))return;
+  if(k=="l3t"){if(P(ui.pj))E({t:"l3t",pid:+ui.pj,v:t.value?+t.value:0});save();render();return}
   if(k=="medsig"){
     if(P(ui.pj))E({t:"medsig",pid:+ui.pj,e:+t.dataset.v,v:t.value?+t.value:0});
     save();render();return;
