@@ -3,7 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tournoi ATP de la classe</title>
+<title>Tennis de table</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tennis de table">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#2a2a2e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
@@ -172,7 +179,7 @@ try{const j=localStorage.getItem(KEY);if(j)S=JSON.parse(j)}catch(e){}
 const MK="atp-mode-v1";let MODE={on:false,pin:""};
 try{const m=JSON.parse(localStorage.getItem(MK));if(m&&m.on)MODE=m}catch(e){}
 const saveMode=()=>{try{localStorage.setItem(MK,JSON.stringify(MODE))}catch(e){}};
-const STUT=["tournoi","tour","joueur"],STUA=["tab","med","mbadd","mbchrono","rec","tsel","ttab","tmat","toc","tsc","tscx","tabs","tog","unl","modeoff","l3s","l3p","l3k","l4d","l4p"],STUC=["w","l","d","pj","st","tscore","tterr","medsig","l3t"];
+const STUT=["tournoi","tour","joueur"],CONS=["tournoi","tour","matchs","joueur","recap"],STUA=["tab","med","mbadd","mbchrono","rec","tsel","ttab","tmat","toc","tsc","tscx","tabs","tog","unl","modeoff","l3s","l3p","l3k","l5k","l4d","l4p","consopen","consexit","consgo"],STUC=["w","l","d","pj","st","tscore","tterr","medsig","l3t"];
 const QS=new URLSearchParams(location.search),LINK=QS.has("eleve"),DBURL=(QS.get("db")||"").replace(/\/+$/,"");
 let SY={url:"",secret:""};try{const y=JSON.parse(localStorage.getItem("atp-sync-v1"));if(y&&y.url)SY=y}catch(e){}
 if(LINK){S={title:"Tennis de table 4ème",players:[],matches:[],bar:DEF(),arch:[],nid:100,tours:[]};MODE={on:true,pin:"",link:true}}
@@ -448,6 +455,7 @@ function applyEv(ev){
     case "medsig":if(P(ev.pid)){S.sig=S.sig||{};const s=S.sig[ev.pid]=S.sig[ev.pid]||{};if(ev.v&&+ev.v!=ev.pid)s[ev.e]=+ev.v;else delete s[ev.e]}break;
     case "l4m":{const g=S.l4g&&S.l4g.g&&S.l4g.g[ev.i];if(g&&/^(a|b|p)$/.test(ev.key)&&ev.mi>=0&&ev.mi<8){g.r=g.r||{};const key=ev.mi+"_"+ev.key;if(ev.v==null||ev.v<=0)delete g.r[key];else g.r[key]=Math.min(+ev.v,ev.key=="p"?5:ev.key=="a"?11:109)}break}
     case "l3t":if(P(ev.pid)){S.l3s=S.l3s||{};const o=S.l3s[ev.pid]=S.l3s[ev.pid]||{r:{}};if(ev.v>=1&&ev.v<=20)o.t=+ev.v;else delete o.t}break;
+    case "l5k":if(P(ev.pid)&&ev.s>=0&&ev.s<5){S.l5s=S.l5s||{};const o=S.l5s[ev.pid]=S.l5s[ev.pid]||{r:{}};o.r=o.r||{};if(ev.v==null)delete o.r["s"+ev.s];else if(ev.v>=0&&ev.v<=10)o.r["s"+ev.s]=+ev.v}break;
     case "l3k":if(P(ev.pid)&&ev.s>=0&&ev.s<3&&ev.k>=0&&ev.k<10){S.l3s=S.l3s||{};const o=S.l3s[ev.pid]=S.l3s[ev.pid]||{r:{}};o.r=o.r||{};const key=ev.s+"_"+ev.k;if(ev.v==null)delete o.r[key];else if(ev.v>=0&&ev.v<=2)o.r[key]=+ev.v}break;
     case "l3":{const g=S.l3&&S.l3.g&&S.l3.g[ev.i];if(g){g.r=g.r||{};const key=ev.mi+"_"+ev.sd+"_"+ev.k;if(ev.v==null)delete g.r[key];else if(ev.v>=0&&ev.v<=3)g.r[key]=+ev.v}break}
     case "mbadd":if(P(ev.pid)&&P(ev.p)&&ev.p!=ev.pid&&ev.n>=0){S.mba=S.mba||{};(S.mba[ev.pid]=S.mba[ev.pid]||[]).push({p:ev.p,n:ev.n,date:ev.date})}break;
@@ -541,6 +549,18 @@ let syT=null;
 function startSync(){clearInterval(syT);if(!LINK&&SY.url&&SY.secret){syT=setInterval(pullEvents,4000);pullEvents()}}
 function studentLink(){return location.origin+location.pathname+"?eleve&db="+encodeURIComponent(SY.url)}
 
+
+const sha=async t=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode("atp|"+t)))).map(b=>b.toString(16).padStart(2,"0")).join("");
+async function consGo(){
+  const el=$("#cc"),v=el?el.value.trim():"";
+  try{if(v&&S.cch&&await sha(v)==S.cch){ui.cv=true;ui.co=false;ui.cerr="";ui.tab="recap"}else ui.cerr="Code incorrect."}catch(e){ui.cerr="Vérification impossible sur cet appareil."}
+  render();
+}
+async function setConsCode(){
+  const el=$("#syc"),v=el?el.value.trim():"";
+  try{S.cch=v?await sha(v):"";if(!v)delete S.cch;ui.sy2=v?"Code de consultation enregistré.":"Code de consultation supprimé.";save()}catch(e){ui.sy2="Impossible d’enregistrer le code sur cet appareil."}
+  const m=$("#syc2");if(m)m.textContent=ui.sy2;
+}
 function vSync(){
   const ok=SY.url&&SY.secret,lk=ok?studentLink():"",bad=location.protocol=="file:"||/claude\.ai|claudeusercontent|claude\.com/.test(location.host);
   const rules=`{\n  "rules": {\n    "snapshot": { ".read": true, ".write": false },\n    "events": {\n      ".read": false,\n      "$id": { ".write": "!data.exists()", ".validate": "newData.hasChildren(['t','id'])" }\n    }\n  }\n}`;
@@ -548,7 +568,7 @@ function vSync(){
 <label for="syu">Adresse de la base (Firebase Realtime Database)</label><input id="syu" value="${esc(SY.url)}" placeholder="https://nom-du-projet-default-rtdb.europe-west1.firebasedatabase.app" autocapitalize="off" autocorrect="off">
 <label for="sys">Clé secrète de la base (reste sur cet appareil)</label><input id="sys" type="password" value="${esc(SY.secret)}" autocomplete="off">
 <p><button class="btn" data-a="sysave">Enregistrer et tester</button></p><p class="hint" id="syst">${esc(ui.sy||"")}</p>
-${ok?`<h3>QR code pour les élèves</h3>${bad?`<p class="warn">Cette page n’est pas ouverte depuis son adresse d’hébergement : le QR code ne fonctionnera qu’une fois la page hébergée et ouverte depuis cette adresse.</p>`:""}<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start"><div style="width:230px;max-width:100%">${qrSvg(lk,230)}</div><div style="flex:1 1 240px"><p class="hint">Lien élève :</p><textarea readonly onfocus="this.select()" aria-label="Lien élève" style="min-height:90px">${esc(lk)}</textarea></div></div>`:""}
+${ok?`<h3>Consultation depuis une autre tablette</h3><p class="hint">Avec ce code, vous pouvez regarder les résultats de toute la classe (récap des leçons, fiches, matchs) depuis le lien élève, en lecture seule. Sur la page élève, touchez « Consultation » en bas de page. Le code est enregistré sous forme brouillée. Laissez vide pour désactiver.</p><label for="syc">Code de consultation</label><input id="syc" type="password" autocomplete="off" placeholder="${S.cch?"Code défini (saisir pour le changer)":"Choisissez un code"}"><p><button class="btn sec" data-a="syc">Enregistrer le code</button></p><p class="hint" id="syc2">${esc(ui.sy2||"")}</p><h3>QR code pour les élèves</h3>${bad?`<p class="warn">Cette page n’est pas ouverte depuis son adresse d’hébergement : le QR code ne fonctionnera qu’une fois la page hébergée et ouverte depuis cette adresse.</p>`:""}<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start"><div style="width:230px;max-width:100%">${qrSvg(lk,230)}</div><div style="flex:1 1 240px"><p class="hint">Lien élève :</p><textarea readonly onfocus="this.select()" aria-label="Lien élève" style="min-height:90px">${esc(lk)}</textarea></div></div>`:""}
 <details style="margin-top:12px"><summary><b>Règles à coller dans Firebase</b></summary><p class="hint">Dans Firebase, Realtime Database, onglet Règles : remplacez tout par ce texte puis publiez. Les élèves peuvent lire l’instantané et déposer des saisies, sans pouvoir lire celles des autres ni modifier vos données.</p><textarea readonly onfocus="this.select()" aria-label="Règles Firebase" style="min-height:190px;font-family:monospace">${esc(rules)}</textarea></details></div>`;
 }
 function vArch(){
@@ -628,7 +648,8 @@ function vLecon2(id,C){
   const body=`<h3>Mon meilleur ami</h3><p class="hint">Situation : avec un partenaire, vous avez 1 minute pour réaliser l’échange le plus long possible. À la fin, notez le nombre d’échanges maximum réalisé sans que la balle tombe, et le nom de votre partenaire. Le résultat apparaît automatiquement aussi chez votre partenaire : inutile qu’il le saisisse de son côté.</p>
 <p style="margin:8px 0"><b>Je suis le partenaire record de ${pcn} personne${pcn>1?"s":""}</b>${pcn?" : "+esc(pcl):""}.</p>
 <div class="row" style="align-items:center"><button type="button" class="btn sec" data-a="mbchrono">Chrono 1 min</button><b id="mbt" style="font:700 40px/1 'Barlow Condensed',Barlow,sans-serif;min-width:90px">1:00</b></div>
-<div class="row" style="margin-top:10px"><div><label for="mbp">Mon partenaire</label><select id="mbp"><option value="">Choisir un partenaire</option>${sorted.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}</select></div><div><label for="mbn">Échanges réalisés (maximum)</label><input id="mbn" type="number" min="0" inputmode="numeric" placeholder="0"></div><button class="btn" data-a="mbadd">Enregistrer</button></div>
+<div class="row" style="margin-top:10px"><div><label for="mbp">Mon partenaire</label><select id="mbp"><option value="">Choisir un partenaire</option>${sorted.map(r=>`<option value="${r.id}"${ui.mbp==r.id?" selected":""}>${esc(r.name)}</option>`).join("")}</select></div><div><label for="mbn">Échanges réalisés (maximum)</label><input id="mbn" type="number" min="0" inputmode="numeric" placeholder="0" value="${esc(ui.mbn||"")}"></div><button class="btn" data-a="mbadd">Enregistrer</button></div>
+<p role="status" style="margin:8px 0;font-weight:600;color:${ui.mbm&&ui.mbm.startsWith("Enregistré")?"var(--pos)":"var(--neg)"}">${esc(ui.mbm||"")}</p>
 ${L.length?`<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Date</th><th>Partenaire</th><th class="n">Échanges</th><th></th></tr></thead><tbody>${rows}</tbody></table></div><p class="hint">★ : mon meilleur échange.</p>`:`<p class="empty">Aucun essai enregistré.</p>`}`;
   return `<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="lecon2" aria-expanded="${op}">Leçon 2${best?` · record ${best} échanges`:""} ${op?"▲":"▼"}</button>${op?`<div style="margin-top:6px">${body}</div>`:""}</div>`;
 }
@@ -766,7 +787,7 @@ function vRecap(C){
   const l3=`<div class="card">${hd("rc3","Bilan du niveau des joueurs")}${ui.open.rc3?"":`<p class="hint">Moyenne des fiches d’observation remplies par les coachs pendant les tournois (tous tournois confondus). ${nobs} joueur${nobs>1?"s":""} observé${nobs>1?"s":""} sur ${nrows.length}.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th>${STK.map(s=>`<th>${s[1]}</th>`).join("")}<th>Niveau général</th><th>Commentaire</th></tr></thead><tbody>${nrows.map(x=>`<tr><td><div class="who">${av(P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td>${x.N.map(v=>`<td>${cell(v)}</td>`).join("")}<td>${x.g!=null?`<b>${LV[Math.round(x.g)-1]}</b><br><small>${fr(x.g)}/5</small>`:"–"}</td><td style="min-width:240px;font-size:14px;line-height:1.35">${esc(commentOf(x.r.id))}</td></tr>`).join("")}</tbody></table></div>`}</div>`;
   const pbtn=`<div class="card"><button type="button" class="btn" data-a="pbil">Imprimer les bilans leçon 1 (PDF)</button> <button type="button" class="btn" data-a="pbil2">Imprimer les bilans leçon 2 (PDF)</button> <button type="button" class="btn" data-a="pbil3">Imprimer les bilans leçon 3 (PDF)</button> <button type="button" class="btn" data-a="pbil4">Imprimer les bilans leçon 4 (PDF)</button><p class="hint">Une fiche bilan par élève : médailles pour la leçon 1, record d’échanges, partenaires et essais pour la leçon 2, séries et médaille du service-cible pour la leçon 3, balles à 10 points et rang de boss pour la leçon 4, à imprimer ou à enregistrer en PDF.</p></div>`;
-  return pbtn+l1+`<div class="card">${hd("rc2","Leçon 2 : Mon meilleur ami")}${ui.open.rc2?"":`<p class="hint">${tot} échange${tot>1?"s":""} enregistré${tot>1?"s":""}. Le record d’un élève est son meilleur échange, avec n’importe quel partenaire. « Partenaire d’un record » compte les personnes dont l’élève était le partenaire lors de leur record.</p>
+  return (LINK?"":pbtn)+l1+`<div class="card">${hd("rc2","Leçon 2 : Mon meilleur ami")}${ui.open.rc2?"":`<p class="hint">${tot} échange${tot>1?"s":""} enregistré${tot>1?"s":""}. Le record d’un élève est son meilleur échange, avec n’importe quel partenaire. « Partenaire d’un record » compte les personnes dont l’élève était le partenaire lors de leur record.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Record</th><th>Avec</th><th class="n">Essais</th><th class="n">Partenaire d’un record</th></tr></thead><tbody>${rows.map(x=>`<tr><td><div class="who">${av(x.r&&P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n"><b>${x.best||"–"}</b></td><td>${x.w.length?esc(x.w.join(", ")):"–"}</td><td class="n">${x.essais}</td><td class="n">${x.pc}</td></tr>`).join("")}</tbody></table></div>`}</div>`+l3r+l4r+l3;
 }
 function nivOf(id){
@@ -831,7 +852,7 @@ function vJoueur(C){
   if(p&&r){
     const ms=C.log.filter(m=>m.wi==p.id||m.li==p.id).reverse();
     body=`<div class="st">${av(p,"l")}<div><b style="font-size:20px">${esc(p.name)}</b><br>Rang ${r.rank}, <b>${r.pts} pts</b> (<span class="${cl(r.pts-r.init)}">${sg(r.pts-r.init)}</span>)<br><small>${r.m} match${r.m>1?"s":""} : ${r.w} victoire${r.w>1?"s":""}, ${r.l} défaite${r.l>1?"s":""}</small></div></div>`+vPts(p.id)+vBilan(p.id,C)+vEvol(p.id)+vEvolD(p.id)
-    +(ms.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Adversaire</th><th>Résultat</th><th class="n">Son rang</th><th class="n">Points</th></tr></thead><tbody>${ms.map(m=>{const win=m.wi==p.id,pt=win?m.pw:m.pl;return `<tr><td>${fd(m.date)}</td><td><div class="who">${av(P(win?m.li:m.wi),"s")}<span>${esc(win?m.ln:m.wn)} <small>(rang ${win?m.rl:m.rw})</small></span></div></td><td class="${win?"pos":"neg"}">${win?"Victoire":"Défaite"}</td><td class="n">${win?m.rw:m.rl}</td><td class="n ${cl(pt)}">${sg(pt)}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="empty">Aucun match joué pour l’instant.</p>`)+vMed(p.id,C)+vLecon2(p.id,C)+vLecon3(p.id)+vLecon4(p.id);
+    +(ms.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Adversaire</th><th>Résultat</th><th class="n">Son rang</th><th class="n">Points</th></tr></thead><tbody>${ms.map(m=>{const win=m.wi==p.id,pt=win?m.pw:m.pl;return `<tr><td>${fd(m.date)}</td><td><div class="who">${av(P(win?m.li:m.wi),"s")}<span>${esc(win?m.ln:m.wn)} <small>(rang ${win?m.rl:m.rw})</small></span></div></td><td class="${win?"pos":"neg"}">${win?"Victoire":"Défaite"}</td><td class="n">${win?m.rw:m.rl}</td><td class="n ${cl(pt)}">${sg(pt)}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="empty">Aucun match joué pour l’instant.</p>`)+vMed(p.id,C)+vLecon2(p.id,C)+vLecon3(p.id)+vLecon4(p.id)+vLecon5(p.id);
   }
   return `<div class="card"><h2>Matchs d’un joueur</h2><label for="spj">Joueur</label><select id="spj" data-ch="pj">${opts}</select><div style="margin-top:14px">${body}</div></div>`;
 }
@@ -1074,6 +1095,29 @@ ${[0,1,2].map(sr=>`<div style="margin:14px 0"><div style="display:flex;justify-c
   return `<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="lecon3" aria-expanded="${op}">Leçon 3${nn?` · ${all} / 60${mk>=0?" · "+ML[mk][0].toLowerCase():""}`:""} ${op?"▲":"▼"}</button>${op?`<div style="margin-top:6px">${body}</div>`:""}</div>`;
 }
 
+/* ===== Leçon 5 : Entraîneur et smasheur fou ===== */
+const L5ML=[["Bronze",5,"#b9733c"],["Argent",7,"#a9afb5"],["Or",9,"#d9a520"]];
+function l5Stats(id){const r=((S.l5s&&S.l5s[id])||{}).r||{},v=[0,1,2,3,4].map(i=>r["s"+i]),d=v.filter(x=>x!=null),best=d.length?Math.max(...d):null;return {v,n:d.length,best,mk:best==null?-1:L5ML.reduce((m,l,i)=>best>=l[1]?i:m,-1)}}
+function vLecon5(id){
+  const op=!!ui.open.lecon5,st=l5Stats(id),mk=st.mk;
+  const med=v=>v==null?"":L5ML.reduce((m,l)=>v>=l[1]?l:m,null);
+  const body=`<h3>Entraîneur et smasheur fou</h3><p class="hint">Par deux, avec une seule balle. Vous alternez les rôles de smasheur et d’entraîneur : chacun fait une série de 10 smashes, puis on change. <b>Le smasheur</b> marque 1 point si son smash dépasse la ligne au sol située 2 mètres derrière la table. <b>L’entraîneur</b> sert à la main (sans raquette, un rebond sur sa moitié de table puis un rebond dans le cercle dessiné sur la moitié du smasheur, à mi-distance, côté coup droit), se place vite derrière la ligne pour juger le smash et récupérer la balle, annonce le score à voix haute (1 sur 1, 1 sur 2, 2 sur 3…) et note le résultat ci-dessous.</p>
+<svg viewBox="0 0 360 340" role="img" aria-label="Schéma : l’entraîneur sert à la main dans le cercle, le smasheur smashe au-delà de la ligne située 2 mètres derrière la table" style="width:100%;max-width:420px;display:block;margin:10px auto;background:#fff;border:1px solid #cfc8c8;border-radius:10px"><defs><marker id="l5a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1a5fb4"/></marker><marker id="l5b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c8102e"/></marker></defs>
+<rect x="110" y="44" width="140" height="180" fill="#1f6f43" stroke="#241c1d" stroke-width="2"/><line x1="180" y1="44" x2="180" y2="224" stroke="#fff" stroke-width="1.5" opacity=".7"/><line x1="104" y1="134" x2="256" y2="134" stroke="#241c1d" stroke-width="4"/><text x="262" y="138" font-size="12" fill="#241c1d">filet</text>
+<circle cx="145" cy="90" r="17" fill="#ffe14d" fill-opacity=".85" stroke="#241c1d" stroke-width="2"/><text x="60" y="94" font-size="12" font-weight="700" fill="#241c1d" text-anchor="middle">cercle</text><line x1="82" y1="90" x2="126" y2="90" stroke="#241c1d" stroke-width="1"/>
+<circle cx="145" cy="22" r="13" fill="#7b2d8e"/><text x="165" y="26" font-size="13" font-weight="700" fill="#241c1d">SMASHEUR</text>
+<circle cx="215" cy="318" r="13" fill="#5aa02c"/><text x="235" y="322" font-size="13" font-weight="700" fill="#241c1d">ENTRAÎNEUR</text>
+<path d="M205 198 L168 160 L147 96" fill="none" stroke="#1a5fb4" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#l5a)"/><circle cx="205" cy="198" r="5" fill="#1a5fb4"/><text x="256" y="168" font-size="10" fill="#1a5fb4" font-weight="700">1. service à la main</text><text x="256" y="182" font-size="10.5" fill="#1a5fb4">1 rebond chez moi,</text><text x="256" y="195" font-size="10.5" fill="#1a5fb4">puis dans le cercle</text>
+<path d="M150 108 L183 284" fill="none" stroke="#c8102e" stroke-width="4" marker-end="url(#l5b)"/><text x="192" y="250" font-size="12" fill="#c8102e" font-weight="700">2. smash</text>
+<line x1="40" y1="276" x2="320" y2="276" stroke="#c8102e" stroke-width="3" stroke-dasharray="10 6"/><polygon points="40,276 30,296 50,296" fill="#e02020"/><polygon points="320,276 310,296 330,296" fill="#e02020"/><text x="58" y="298" font-size="10.5" font-weight="700" fill="#c8102e">ligne à 2 m derrière la table</text>
+</svg>
+<p class="hint">Point pour le smasheur si le smash <b>dépasse la ligne rouge</b>. L’entraîneur se place derrière la ligne pour juger et rattraper la balle.</p>
+<p class="hint">Chaque série compte sur 10 : <b>bronze dès ${L5ML[0][1]}/10, argent dès ${L5ML[1][1]}/10, or dès ${L5ML[2][1]}/10</b>. Ma médaille finale est la plus haute obtenue sur mes séries. Touchez le score d’une série pour le noter, touchez-le encore pour l’effacer.</p>
+${[0,1,2,3,4].map(i=>{const v=st.v[i],m=med(v);return `<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>Série ${i+1}</b><span style="font-weight:700">${v==null?"à noter":v+" / 10"}${m?` · <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${m[2]};vertical-align:-2px"></span> ${m[0]}`:""}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${Array.from({length:11},(_,n)=>`<button type="button" data-a="l5k" data-v="${i},${n}" aria-pressed="${v===n}" aria-label="Série ${i+1} : ${n} sur 10" style="min-width:48px;min-height:48px;padding:4px;font-weight:700;font-size:18px;border:2px solid #241c1d;border-radius:10px;cursor:pointer;color:${v===n?"#fff":"#241c1d"};background:${v===n?"#c8102e":"#fff"}">${n}</button>`).join("")}</div></div>`}).join("")}
+<div class="side" style="text-align:center">${mk>=0?`<span style="display:inline-block;width:34px;height:34px;border-radius:50%;background:${L5ML[mk][2]}"></span><div style="font-size:24px;font-weight:700">${L5ML[mk][0]}</div><div class="hint">Meilleure série : ${st.best} / 10</div>`:`<span style="display:inline-block;width:34px;height:34px;border-radius:50%;border:4px solid #cfc8c8;box-sizing:border-box"></span><div style="font-size:18px;font-weight:700">Pas encore de médaille</div>`}</div>`;
+  return `<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="lecon5" aria-expanded="${op}">Leçon 5${st.n?` · meilleure série ${st.best} / 10${mk>=0?" · "+L5ML[mk][0].toLowerCase():""}`:""} ${op?"▲":"▼"}</button>${op?`<div style="margin-top:6px">${body}</div>`:""}</div>`;
+}
+
 /* ===== Leçon 4 : Jouer dans la latéralité, le Boss des côtés ===== */
 const L4N="ABCD",L4R4=[[0,[1,2],3],[1,[3,0],2],[2,[1,3],0],[3,[0,2],1],[0,[1,3],2],[1,[2,3],0],[2,[0,1],3],[3,[0,2],1]],L4R3=[[0,[1,2],-1],[1,[0,2],-1],[2,[0,1],-1]];
 const L4R=n=>n==3?L4R3:L4R4;
@@ -1168,16 +1212,23 @@ function render(){
   const C=compute();
   $("#ti").value=S.title;
   $("#cl").textContent=S.cls?"Classe "+S.cls:"";
-  if(MODE.on&&!STUT.includes(ui.tab))ui.tab="tournoi";
+  const AL=LINK&&ui.cv?CONS:STUT;
+  if(MODE.on&&!AL.includes(ui.tab))ui.tab="tournoi";
   $("#ti").readOnly=MODE.on;
-  $("#ft").innerHTML="© "+new Date().getFullYear()+" Sylvain Paillat. Tous droits réservés."+(LINK?`<div style="margin-top:8px"><small>${netMsg?esc(netMsg):(synced?"Synchronisé à "+synced.toLocaleTimeString("fr-FR"):"Connexion à la classe…")}</small></div>`:MODE.on?`<div style="margin-top:8px"><button class="btn sec sm" data-a="unl">Accès enseignant</button>${ui.unl?` <input id="mpin2" type="password" placeholder="Code" style="width:110px;display:inline-block"> <button class="btn sm" data-a="modeoff">Valider</button>`:""}${ui.mmsg?`<div class="warn">${esc(ui.mmsg)}</div>`:""}</div>`:"");
-  $("#nav").innerHTML=(MODE.on?TABS.filter(t=>STUT.includes(t[0])):TABS).map(t=>`<button class="${ui.tab==t[0]?"on":""}" data-a="tab" data-v="${t[0]}">${t[1]}</button>`).join("");
-  $("#app").innerHTML=ui.tab=="matchs"?`<div class="card"><h2>Tous les matchs (${C.log.length})</h2>${tblMatches(C.log,true)}<p class="hint">Supprimer un match recalcule le classement en rejouant les matchs suivants.</p></div>`
-    :ui.tab=="tour"?vTournoi(C):ui.tab=="joueur"?vJoueur(C):ui.tab=="groupes"?vGroupes(C):ui.tab=="joueurs"?vJoueurs(C):ui.tab=="bareme"?vBareme():ui.tab=="recap"?vRecap(C):ui.tab=="archives"?vArch():ui.tab=="classe"?vClasse():vTour(C);
+  $("#ft").innerHTML="© "+new Date().getFullYear()+" Sylvain Paillat. Tous droits réservés."+(LINK?`<div style="margin-top:8px"><small>${netMsg?esc(netMsg):(synced?"Synchronisé à "+synced.toLocaleTimeString("fr-FR"):"Connexion à la classe…")}</small></div>${S.cch&&!ui.cv?`<div style="margin-top:6px"><button type="button" class="btn sec sm" data-a="consopen">Consultation</button></div>`:""}`:MODE.on?`<div style="margin-top:8px"><button class="btn sec sm" data-a="unl">Accès enseignant</button>${ui.unl?` <input id="mpin2" type="password" placeholder="Code" style="width:110px;display:inline-block"> <button class="btn sm" data-a="modeoff">Valider</button>`:""}${ui.mmsg?`<div class="warn">${esc(ui.mmsg)}</div>`:""}</div>`:"");
+  $("#nav").innerHTML=(MODE.on?TABS.filter(t=>AL.includes(t[0])):TABS).map(t=>`<button class="${ui.tab==t[0]?"on":""}" data-a="tab" data-v="${t[0]}">${t[1]}</button>`).join("");
+  const pre=LINK&&ui.cv?`<div class="card" style="border:2px solid #c8102e"><b>Consultation (lecture seule)</b> · les noms sont abrégés. <button type="button" class="btn sec sm" data-a="consexit">Quitter la consultation</button></div>`:LINK&&ui.co?`<div class="card"><h2>Consultation</h2><label for="cc">Code de consultation</label><input id="cc" type="password" autocomplete="off" autocapitalize="off"><p class="warn" role="status">${esc(ui.cerr||"")}</p><p><button type="button" class="btn" data-a="consgo">Ouvrir</button> <button type="button" class="btn sec" data-a="consexit">Annuler</button></p></div>`:"";
+  $("#app").innerHTML=pre+(ui.tab=="matchs"?`<div class="card"><h2>Tous les matchs (${C.log.length})</h2>${tblMatches(C.log,true)}<p class="hint">Supprimer un match recalcule le classement en rejouant les matchs suivants.</p></div>`
+    :ui.tab=="tour"?vTournoi(C):ui.tab=="joueur"?vJoueur(C):ui.tab=="groupes"?vGroupes(C):ui.tab=="joueurs"?vJoueurs(C):ui.tab=="bareme"?vBareme():ui.tab=="recap"?vRecap(C):ui.tab=="archives"?vArch():ui.tab=="classe"?vClasse():vTour(C));
 }
 
 function act(a,v){
   if(MODE.on&&!STUA.includes(a))return;
+  if(LINK&&ui.cv&&!["tab","tog","l3p","l4p","consexit"].includes(a))return;
+  if(a=="syc"){setConsCode();return}
+  if(a=="consgo"){consGo();return}
+  if(a=="consopen"){ui.co=true;ui.cerr="";render();return}
+  if(a=="consexit"){ui.cv=false;ui.co=false;ui.tab="tournoi";render();return}
   if(a=="pbil"){pbS.l=1;pbS.m=false;pbOpen();return}
   if(a=="pbil2"){pbS.l=2;pbS.m=false;pbOpen();return}
   if(a=="pbil3"){pbS.l=3;pbS.m=false;pbOpen();return}
@@ -1201,6 +1252,7 @@ function act(a,v){
     let i=0;S.l4g={d:today(),g:sz.map(m=>{const pl=pres.slice(i,i+m).map(r=>r.id);i+=m;return {pl,r:{}}})};ui.l4p=0;ui.open.l4=true;
   }
   else if(a=="l4del"){delete S.l4g;ui.l4p=0}
+  else if(a=="l5k"){const [sr,n]=v.split(",").map(Number);if(P(ui.pj)){const cur=(((S.l5s||{})[ui.pj]||{}).r||{})["s"+sr];E({t:"l5k",pid:+ui.pj,s:sr,v:cur===n?null:n})}}
   else if(a=="l3k"){const [sr,k]=v.split(",").map(Number);if(P(ui.pj)){const cur=(((S.l3s||{})[ui.pj]||{}).r||{})[sr+"_"+k];E({t:"l3k",pid:+ui.pj,s:sr,k,v:cur==null?2:cur==0?null:cur-1})}}
   else if(a=="l3s"){const [i,mi,sd,k]=v.split(",").map(Number),g=S.l3&&S.l3.g[i];if(g){const cur=(g.r||{})[mi+"_"+sd+"_"+k];E({t:"l3",i,mi,sd,k,v:cur==null?3:cur==0?null:cur-1})}}
   else if(a=="l3p"){ui.l3p=+v}
@@ -1234,8 +1286,8 @@ function act(a,v){
   else if(a=="med"){const d=v.split(",").map(Number);if(P(ui.pj))E({t:"med",pid:+ui.pj,e:d[0],k:d[1]})}
   else if(a=="mbadd"){
     const n=Math.floor(+$("#mbn").value),pt=+$("#mbp").value,pid=ui.pj;
-    if(!P(pid)||!pt||pt==pid||!(n>=0)||$("#mbn").value===""){ui.mmsg="";return}
-    E({t:"mbadd",pid:+pid,p:pt,n,date:today()});
+    if(!P(pid)||!pt||pt==pid||!(n>=0)||$("#mbn").value===""){ui.mbm=!pt?"Choisissez d’abord votre partenaire.":$("#mbn").value===""||!(n>=0)?"Saisissez le nombre d’échanges.":"Vérifiez le partenaire choisi.";render();return}
+    E({t:"mbadd",pid:+pid,p:pt,n,date:today()});ui.mbp="";ui.mbn="";ui.mbm="Enregistré : "+n+" échange"+(n>1?"s":"")+" avec "+nm(pt)+".";
   }
   else if(a=="mbdel"){const d=v.split(",").map(Number),L=S.mba&&S.mba[d[0]];if(L)L.splice(d[1],1)}
   else if(a=="mbchrono"){
@@ -1281,6 +1333,8 @@ function act(a,v){
   save();render();
 }
 
+const keepDraft=e=>{const t=e.target;if(t&&t.id=="mbn")ui.mbn=t.value;else if(t&&t.id=="mbp")ui.mbp=t.value};
+document.addEventListener("input",keepDraft);document.addEventListener("change",keepDraft);
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-a]");if(!b)return;
   if(b.dataset.c&&!b.classList.contains("armed")){
@@ -1291,6 +1345,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("change",e=>{
   const t=e.target,k=t.dataset.ch;if(!k)return;
+  if(LINK&&ui.cv&&k!="pj")return;
   if(MODE.on&&!STUC.includes(k))return;
   if(k=="l3t"){if(P(ui.pj))E({t:"l3t",pid:+ui.pj,v:t.value?+t.value:0});save();render();return}
   if(k=="medsig"){
@@ -1324,7 +1379,7 @@ document.addEventListener("change",e=>{
   else if(k=="oname"){S.obs[+t.dataset.i].n=t.value.trim();ui.od=true}
   else if(k=="ow"){S.obs[+t.dataset.i].w=+t.value||0;ui.od=true}
   else if(k=="ocount"){S.obs[+t.dataset.i].c=t.checked;ui.od=true}
-  else if(k=="pj")ui.pj=t.value;
+  else if(k=="pj"){ui.pj=t.value;ui.mbp="";ui.mbn="";ui.mbm=""}
   else if(k=="gs")ui.gs=+t.value;
   else if(k=="pres"){ui.ab[t.dataset.v]=!t.checked;ui.gd=true}
   else if(k=="w")ui.w=t.value;
@@ -1336,7 +1391,19 @@ document.addEventListener("change",e=>{
   else if(k=="title")S.title=t.value.trim()||"Tennis de table 4ème";
   save();render();
 });
-render();
+const BUILD="20261112-150800";let HOSTED=true;
+async function chkUpdate(){
+  if(!HOSTED||location.protocol!="https:")return;
+  try{
+    const r=await fetch(location.pathname,{cache:"no-store"});if(!r.ok)return;
+    const m=(await r.text()).match(/const BUILD="([^"]+)"/);
+    const u=new URL(location.href);
+    if(m&&m[1]!=BUILD&&u.searchParams.get("v")!=m[1]&&!editing()){u.searchParams.set("v",m[1]);location.replace(u.toString())}
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible")chkUpdate()});
+
+render();chkUpdate();
 if(LINK){pullSnap();setInterval(pullSnap,4000)}else if(SY.url&&SY.secret){doPush();startSync()}
 </script>
 </body>
