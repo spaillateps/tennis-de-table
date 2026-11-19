@@ -744,14 +744,46 @@ function pbPage4(r){
 <div class="pbw" style="margin-top:auto"><span>Ce que je retiens pour viser les côtés :</span><span class="l"></span></div>
 </div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
 }
+function pbPage5(r){
+  const id=r.id,nx=pbSplit(r.name),D=l5Stats(id);
+  const rows=D.v.map((v,i)=>{const m=v==null?null:L5ML.reduce((q,l)=>v>=l[1]?l:q,null);return `<tr><td style="text-align:left"><b>Série ${i+1}</b> : 10 smashes</td><td><span class="pbx" style="width:80px;font-size:16px">${v==null?"":v+" / 10"}</span></td><td style="text-align:left">${m?`<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${m[2]};vertical-align:-3px"></span> ${m[0]}`:""}</td></tr>`}).join("");
+  return `<section class="pbp"><div class="pbh">${pbLogo()}<i>Tennis de table · Leçon 5</i><h1>Mon bilan : entraîneur et smasheur</h1></div><div class="pbb">
+<div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
+<table><thead><tr><th>Mes séries de smashes</th><th style="width:130px">Mon score</th><th style="width:150px">Médaille de la série</th></tr></thead><tbody>${rows}</tbody></table>
+<div class="pbc" style="flex-direction:row;align-items:center;gap:30px"><div style="text-align:center;min-width:150px"><div style="font:700 56px/1 'Barlow Condensed',Barlow,sans-serif;color:#c8102e">${D.n?D.best:"–"}</div><div style="font-size:15px">ma meilleure série sur 10</div></div><div style="display:flex;align-items:center;gap:12px">${D.mk>=0?`<span style="width:44px;height:44px;border-radius:50%;background:${L5ML[D.mk][2]};display:block"></span><span style="font-size:24px;font-weight:700">Médaille ${L5ML[D.mk][0].toLowerCase()}</span>`:`<span style="width:44px;height:44px;border-radius:50%;border:4px solid #cfc8c8;box-sizing:border-box;display:block"></span><span style="font-size:20px;font-weight:600">Pas encore de médaille</span>`}</div><div style="margin-left:auto;font-size:13px;color:#6a6061;line-height:1.5">Bronze dès ${L5ML[0][1]}/10<br>Argent dès ${L5ML[1][1]}/10<br>Or dès ${L5ML[2][1]}/10<br>Médaille finale : la plus haute</div></div>
+<div class="pbw" style="margin-top:auto"><span>Ce que je retiens pour mieux smasher :</span><span class="l"></span></div>
+</div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
+}
+function pbPage6(r){
+  const id=r.id,nx=pbSplit(r.name);
+  const md=(S.med&&S.med[id])||{},cnt=MEDL.map((l,k)=>MEDX.reduce((s,_,e)=>s+(md[e]&&md[e][k]?1:0),0)),n1=cnt.reduce((a,b)=>a+b,0);
+  const D2=pbL2(id),D3=l3Stats(id),D4=l4Stats(id),x4=D4&&D4.started?D4.x:null,D5=l5Stats(id);
+  const dot=c=>`<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c};vertical-align:-3px"></span>`;
+  const med=(L,k)=>k>=0?`${dot(L[k][2])} ${L[k][0]}`:"";
+  const tr=(n,t,res,m)=>`<tr><td style="text-align:left;padding:26px 10px"><div style="display:flex;align-items:center"><span class="pbn" style="flex-shrink:0">${n}</span><b>${t}</b></div></td><td style="text-align:left;font-size:16px;line-height:1.4">${res}</td><td style="text-align:left">${m}</td></tr>`;
+  const lst=a=>a.map(i=>P(i)?pbSplit(P(i).name).pr:"").filter(Boolean).join(", ");
+  const rows=
+    tr(1,"Le défi des médailles",n1?`${n1} médaille${n1>1?"s":""} : ${MEDL.map((l,k)=>l[0].toLowerCase()+" "+cnt[k]).join(" · ")}`:"Pas encore de médaille","")+
+    tr(2,"Mon meilleur ami",D2.best?`Record : <b>${D2.best}</b> échanges${D2.w.length?" avec "+esc(lst(D2.w)):""}`:"Pas encore d’essai","")+
+    tr(3,"Le service-cible",D3.n?`<b>${D3.all}</b> points sur 60`:"Pas encore joué",med(L3ML,D3.mk))+
+    tr(4,"Le Boss des côtés",x4&&x4.nb?`Rang de boss : <b>${D4.rk}</b> sur ${D4.n} · ${x4.a} balle${x4.a>1?"s":""} à 10 points`:"Pas encore de match de boss","")+
+    tr(5,"Entraîneur et smasheur",D5.n?`Meilleure série : <b>${D5.best}</b> / 10`:"Pas encore joué",med(L5ML,D5.mk));
+  return `<section class="pbp"><div class="pbh">${pbLogo()}<i>Tennis de table · Cycle de 5 leçons</i><h1>Mon bilan de toutes les leçons</h1></div><div class="pbb">
+<div class="pbf"><div><span>Nom :</span><span class="v">${esc(nx.su)}</span></div><div><span>Prénom :</span><span class="v">${esc(nx.pr)}</span></div><div class="c"><span>Classe :</span><span class="v">${esc(S.cls||"")}</span></div></div>
+<table><thead><tr><th style="width:250px">Leçon</th><th>Mon résultat</th><th style="width:130px">Médaille</th></tr></thead><tbody>${rows}</tbody></table>
+<div class="pbw" style="margin-top:22px"><span>Ma réussite dont je suis le plus fier(ère) :</span><span class="l"></span></div>
+<div class="pbw" style="margin-top:22px"><span>Ce que je dois encore améliorer :</span><span class="l"></span></div>
+<div class="pbw" style="margin-top:auto"><span>Mon objectif pour la suite :</span><span class="l"></span></div>
+</div><div class="pbz"><span>Date : ${fd(today())}</span><span>© ${new Date().getFullYear()} Sylvain Paillat</span></div></section>`;
+}
 const pbS={m:false,l:1};
 function pbOpen(){
-  const C=compute(),L2=pbS.l==2,L3=pbS.l==3,L4=pbS.l==4;
+  const C=compute(),L2=pbS.l==2,L3=pbS.l==3,L4=pbS.l==4,L5=pbS.l==5,L6=pbS.l==6;
   let rs=C.rows.slice().sort((a,b)=>a.name.localeCompare(b.name,"fr"));
-  if(pbS.m)rs=rs.filter(r=>{if(L4){const d=l4Stats(r.id);return !!(d&&d.started)}if(L3)return l3Stats(r.id).n>0;if(L2)return pbL2(r.id).L.length>0;const md=(S.med&&S.med[r.id])||{};return Object.keys(md).some(e=>md[e]&&MEDL.some((_,k)=>md[e][k]))});
+  if(pbS.m)rs=rs.filter(r=>{if(L6){const md=(S.med&&S.med[r.id])||{};return Object.keys(md).some(e=>md[e]&&MEDL.some((_,k)=>md[e][k]))||pbL2(r.id).L.length>0||l3Stats(r.id).n>0||!!(l4Stats(r.id)&&l4Stats(r.id).started)||l5Stats(r.id).n>0}if(L5)return l5Stats(r.id).n>0;if(L4){const d=l4Stats(r.id);return !!(d&&d.started)}if(L3)return l3Stats(r.id).n>0;if(L2)return pbL2(r.id).L.length>0;const md=(S.med&&S.med[r.id])||{};return Object.keys(md).some(e=>md[e]&&MEDL.some((_,k)=>md[e][k]))});
   let d=document.getElementById("pbil");if(!d){d=document.createElement("div");d.id="pbil";document.body.appendChild(d)}
   document.body.style.overflow="hidden";
-  d.innerHTML=`<div class="pbbar"><b>Bilans leçon ${pbS.l} · ${rs.length} fiche${rs.length>1?"s":""}</b><button type="button" class="btn" data-a="pbprint">Imprimer / PDF</button><button type="button" class="btn sec" data-a="pblec">${"Voir la leçon "+(pbS.l==4?1:pbS.l+1)}</button><button type="button" class="btn sec" data-a="pbfil">${pbS.m?"Tous les élèves":L4?"Seulement ceux qui ont joué":L3?"Seulement ceux qui ont commencé":L2?"Seulement ceux qui ont un essai":"Seulement ceux qui ont une médaille"}</button><button type="button" class="btn sec" data-a="pbclose">Fermer</button></div><p class="pbhint">Touchez « Imprimer / PDF ». Pour obtenir un PDF, choisissez « Enregistrer au format PDF » (ou « Imprimer » puis pincez l’aperçu pour l’agrandir, et Partager › Enregistrer dans Fichiers). Une page par élève.</p>${rs.map(L4?pbPage4:L3?pbPage3:L2?pbPage2:pbPage).join("")||'<p class="pbhint">Aucun élève à afficher.</p>'}`;
+  d.innerHTML=`<div class="pbbar"><b>${L6?"Bilan de toutes les leçons":"Bilans leçon "+pbS.l} · ${rs.length} fiche${rs.length>1?"s":""}</b><button type="button" class="btn" data-a="pbprint">Imprimer / PDF</button><button type="button" class="btn sec" data-a="pblec">${pbS.l==5?"Voir le bilan de toutes les leçons":pbS.l==6?"Voir la leçon 1":"Voir la leçon "+(pbS.l+1)}</button><button type="button" class="btn sec" data-a="pbfil">${pbS.m?"Tous les élèves":L6?"Seulement ceux qui ont un résultat":L5?"Seulement ceux qui ont commencé":L4?"Seulement ceux qui ont joué":L3?"Seulement ceux qui ont commencé":L2?"Seulement ceux qui ont un essai":"Seulement ceux qui ont une médaille"}</button><button type="button" class="btn sec" data-a="pbclose">Fermer</button></div><p class="pbhint">Touchez « Imprimer / PDF ». Pour obtenir un PDF, choisissez « Enregistrer au format PDF » (ou « Imprimer » puis pincez l’aperçu pour l’agrandir, et Partager › Enregistrer dans Fichiers). Une page par élève.</p>${rs.map(L6?pbPage6:L5?pbPage5:L4?pbPage4:L3?pbPage3:L2?pbPage2:pbPage).join("")||'<p class="pbhint">Aucun élève à afficher.</p>'}`;
   d.scrollTop=0;
 }
 function pbClose(){const d=document.getElementById("pbil");if(d)d.remove();document.body.style.overflow=""}
@@ -789,7 +821,7 @@ function vRecap(C){
   const nobs=nrows.filter(x=>x.g!=null).length;
   const l3=`<div class="card">${hd("rc3","Bilan du niveau des joueurs")}${ui.open.rc3?"":`<p class="hint">Moyenne des fiches d’observation remplies par les coachs pendant les tournois (tous tournois confondus). ${nobs} joueur${nobs>1?"s":""} observé${nobs>1?"s":""} sur ${nrows.length}.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th>${STK.map(s=>`<th>${s[1]}</th>`).join("")}<th>Niveau général</th><th>Commentaire</th></tr></thead><tbody>${nrows.map(x=>`<tr><td><div class="who">${av(P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td>${x.N.map(v=>`<td>${cell(v)}</td>`).join("")}<td>${x.g!=null?`<b>${LV[Math.round(x.g)-1]}</b><br><small>${fr(x.g)}/5</small>`:"–"}</td><td style="min-width:240px;font-size:14px;line-height:1.35">${esc(commentOf(x.r.id))}</td></tr>`).join("")}</tbody></table></div>`}</div>`;
-  const pbtn=`<div class="card"><button type="button" class="btn" data-a="pbil">Imprimer les bilans leçon 1 (PDF)</button> <button type="button" class="btn" data-a="pbil2">Imprimer les bilans leçon 2 (PDF)</button> <button type="button" class="btn" data-a="pbil3">Imprimer les bilans leçon 3 (PDF)</button> <button type="button" class="btn" data-a="pbil4">Imprimer les bilans leçon 4 (PDF)</button><p class="hint">Une fiche bilan par élève : médailles pour la leçon 1, record d’échanges, partenaires et essais pour la leçon 2, séries et médaille du service-cible pour la leçon 3, balles à 10 points et rang de boss pour la leçon 4, à imprimer ou à enregistrer en PDF.</p></div>`;
+  const pbtn=`<div class="card"><button type="button" class="btn" data-a="pbil">Imprimer les bilans leçon 1 (PDF)</button> <button type="button" class="btn" data-a="pbil2">Imprimer les bilans leçon 2 (PDF)</button> <button type="button" class="btn" data-a="pbil3">Imprimer les bilans leçon 3 (PDF)</button> <button type="button" class="btn" data-a="pbil4">Imprimer les bilans leçon 4 (PDF)</button> <button type="button" class="btn" data-a="pbil5">Imprimer les bilans leçon 5 (PDF)</button> <button type="button" class="btn" data-a="pbil6">Imprimer le bilan de toutes les leçons (PDF)</button><p class="hint">Une fiche bilan par élève : médailles pour la leçon 1, record d’échanges, partenaires et essais pour la leçon 2, séries et médaille du service-cible pour la leçon 3, balles à 10 points et rang de boss pour la leçon 4, séries et médaille du smasheur pour la leçon 5, et une fiche de synthèse des leçons 1 à 5, à imprimer ou à enregistrer en PDF.</p></div>`;
   return (LINK?"":pbtn)+l1+`<div class="card">${hd("rc2","Leçon 2 : Mon meilleur ami")}${ui.open.rc2?"":`<p class="hint">${tot} échange${tot>1?"s":""} enregistré${tot>1?"s":""}. Le record d’un élève est son meilleur échange, avec n’importe quel partenaire. « Partenaire d’un record » compte les personnes dont l’élève était le partenaire lors de leur record.</p>
 <div class="scroll"><table><thead><tr><th>Joueur</th><th class="n">Record</th><th>Avec</th><th class="n">Essais</th><th class="n">Partenaire d’un record</th></tr></thead><tbody>${rows.map(x=>`<tr><td><div class="who">${av(x.r&&P(x.r.id),"s")}<span>${esc(x.r.name)}</span></div></td><td class="n"><b>${x.best||"–"}</b></td><td>${x.w.length?esc(x.w.join(", ")):"–"}</td><td class="n">${x.essais}</td><td class="n">${x.pc}</td></tr>`).join("")}</tbody></table></div>`}</div>`+l3r+l4r+l5r+l3;
 }
@@ -1280,7 +1312,9 @@ function act(a,v){
   if(a=="pbil2"){pbS.l=2;pbS.m=false;pbOpen();return}
   if(a=="pbil3"){pbS.l=3;pbS.m=false;pbOpen();return}
   if(a=="pbil4"){pbS.l=4;pbS.m=false;pbOpen();return}
-  if(a=="pblec"){pbS.l=pbS.l==4?1:pbS.l+1;pbS.m=false;pbOpen();return}
+  if(a=="pbil5"){pbS.l=5;pbS.m=false;pbOpen();return}
+  if(a=="pbil6"){pbS.l=6;pbS.m=false;pbOpen();return}
+  if(a=="pblec"){pbS.l=pbS.l==6?1:pbS.l+1;pbS.m=false;pbOpen();return}
   if(a=="pbfil"){pbS.m=!pbS.m;pbOpen();return}
   if(a=="pbclose"){pbClose();return}
   if(a=="pbprint"){window.print();return}
@@ -1438,7 +1472,7 @@ document.addEventListener("change",e=>{
   else if(k=="title")S.title=t.value.trim()||"Tennis de table 4ème";
   save();render();
 });
-const BUILD="20261119-113558";let HOSTED=true;
+const BUILD="20261119-114218";let HOSTED=true;
 async function chkUpdate(){
   if(!HOSTED||location.protocol!="https:")return;
   try{
