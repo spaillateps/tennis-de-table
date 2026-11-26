@@ -1412,6 +1412,7 @@ ${L?`<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span sty
   const own=pl==null?null:(todo.find(mineG)||{}).id||null;
   const opened=ui.l7o!=null?ui.l7o:own;
   const wait=pl!=null&&!own&&L.g.some(mineG)?`<div class="card" style="border:3px solid #c8102e"><h2>En attente du tour suivant</h2><p>${L.g.filter(g=>mineG(g)&&l7Res(g).done).length>=(L.mx||5)?"Tu as joué toutes tes rencontres.":"Ta rencontre est terminée. Dès que toutes les rencontres sont finies, le classement est mis à jour et ta prochaine rencontre apparaît ici."}</p></div>`:"";
+  const who7=(MODE.on||LINK)?`<div class="card"><label for="spj7"><b>Qui es-tu ?</b></label><select id="spj7" data-ch="pj"><option value="">Choisis ton nom</option>${S.players.slice().sort((x,y)=>nm(x.id).localeCompare(nm(y.id),"fr")).map(q=>`<option value="${q.id}"${q.id==ui.pj?" selected":""}>${esc(nm(q.id))}</option>`).join("")}</select></div>`:"";
   const tch=!(MODE.on||LINK),r0=l7Rem(),cm=Math.max(0,Math.min(3,L.cm||0));
   const chr=`<div class="card"><h2>Chrono · manche ${(L.ch?L.ch.k:cm)+1}</h2><div style="text-align:center"><b class="l7t" style="font:700 64px/1 'Barlow Condensed',Barlow,sans-serif">${r0==null?"3:00":l7Fmt(r0)}</b></div>${tch?`<div class="chips" style="margin-top:8px">${[0,1,2,3].map(k=>`<button class="btn sec sm${cm==k?" on":""}" data-a="l7cm" data-v="${k}">Manche ${k+1}</button>`).join("")}</div><p style="margin-top:8px"><button class="btn" data-a="l7chr" data-v="${cm}">Lancer le chrono de 3 minutes (manche ${cm+1}) sur toutes les tablettes</button> <button class="btn sec" data-a="l7stop">Arrêter</button></p>`:""}</div>`;
   const stp=(gi,k,x,val,lb)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="flex:1 1 auto">${lb}</span><button type="button" class="btn sec sm" data-a="l7s" data-v="${gi},${k},${x},-1" aria-label="Moins : ${lb.replace(/<[^>]*>/g," ")}" style="min-width:48px;min-height:48px;font-size:22px">−</button><b style="min-width:36px;text-align:center;font-size:24px">${val}</b><button type="button" class="btn sm" data-a="l7s" data-v="${gi},${k},${x},1" aria-label="Plus : ${lb.replace(/<[^>]*>/g," ")}" style="min-width:48px;min-height:48px;font-size:22px">+</button></div>`;
@@ -1430,7 +1431,7 @@ ${L?`<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span sty
   const list=wait+(todo.length?`<h2 style="margin:14px 0 6px">Rencontres en cours</h2>`+todo.map(cardG).join(""):`<div class="card"><p>Toutes les rencontres sont terminées.</p></div>`);
   const cl=["or","ar"].map(k=>{const t=l7Table(L,k);if(!t.length)return "";return `<div class="card"><h2>${dot(GN[k][1])} Classement du groupe ${GN[k][0]}</h2><div class="scroll"><table><thead><tr><th>Rang</th><th>Équipe</th><th class="n">Pts</th><th class="n">J</th><th class="n">Manches</th><th class="n">Points marqués</th></tr></thead><tbody>${t.map(x=>`<tr><td><span class="rk r${x.rk<4?x.rk:0}">${x.rk}</span></td><td style="white-space:nowrap">${av(P(x.t[0]),"s")} ${av(P(x.t[1]),"s")} ${nn(x.t[0])} et ${nn(x.t[1])}</td><td class="n"><b>${x.pts}</b></td><td class="n">${x.j}</td><td class="n">${x.pf}–${x.pc}</td><td class="n">${x.pp}</td></tr>`).join("")}</tbody></table></div></div>`}).join("");
   const lf=["or","ar"].filter(k=>L.left&&L.left[k]&&L.left[k].length).map(k=>`${GN[k][0]} : ${L.left[k].map(i=>nn(i)).join(", ")}`).join(" · ");
-  return head+'<div style="margin-top:6px">'+chr+list+cl+(lf?`<p class="hint">Élèves sans équipe : ${lf}.</p>`:"")+rules+adm+"</div></div>";
+  return head+'<div style="margin-top:6px">'+who7+chr+list+cl+(lf?`<p class="hint">Élèves sans équipe : ${lf}.</p>`:"")+rules+adm+"</div></div>";
 }
 function l7Deck(o){
   const cd=([em,col,t,st,pw],i)=>{const on=o&&o.sel&&o.sel.includes(i),tag=o?"button":"div",att=o?` type="button" data-a="l7c" data-v="${o.gi},${o.k},${o.x},${i}" aria-pressed="${!!on}" aria-label="Carte ${t} : ${st}${on?" (validée)":""}"`:"";
@@ -1649,7 +1650,7 @@ document.addEventListener("change",e=>{
   else if(k=="title")S.title=t.value.trim()||"Tennis de table 4ème";
   save();render();
 });
-const BUILD="20261126-153334";let HOSTED=true;
+const BUILD="20261126-154127";let HOSTED=true;
 async function chkUpdate(){
   if(!HOSTED||location.protocol!="https:")return;
   try{
