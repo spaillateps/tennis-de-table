@@ -179,7 +179,7 @@ try{const j=localStorage.getItem(KEY);if(j)S=JSON.parse(j)}catch(e){}
 const MK="atp-mode-v1";let MODE={on:false,pin:""};
 try{const m=JSON.parse(localStorage.getItem(MK));if(m&&m.on)MODE=m}catch(e){}
 const saveMode=()=>{try{localStorage.setItem(MK,JSON.stringify(MODE))}catch(e){}};
-const STUT=["tournoi","tour","joueur"],CONS=["tournoi","tour","matchs","joueur","recap"],STUA=["tab","med","mbadd","mbchrono","rec","tsel","ttab","tmat","toc","tsc","tscx","tabs","tog","unl","modeoff","l3s","l3p","l3k","l5k","l4d","l4p","consopen","consexit","consgo"],STUC=["w","l","d","pj","st","tscore","tterr","medsig","l3t"];
+const STUT=["tournoi","tour","joueur"],CONS=["tournoi","tour","matchs","joueur","recap"],STUA=["tab","med","mbadd","mbchrono","rec","tsel","ttab","tmat","toc","tsc","tscx","tabs","tog","unl","modeoff","l3s","l3p","l3k","l5k","l7o","l7s","l7v","l7c","l4d","l4p","consopen","consexit","consgo"],STUC=["w","l","d","pj","st","tscore","tterr","medsig","l3t"];
 const QS=new URLSearchParams(location.search),LINK=QS.has("eleve"),DBURL=(QS.get("db")||"").replace(/\/+$/,"");
 let SY={url:"",secret:""};try{const y=JSON.parse(localStorage.getItem("atp-sync-v1"));if(y&&y.url)SY=y}catch(e){}
 if(LINK){S={title:"Tennis de table 4ème",players:[],matches:[],bar:DEF(),arch:[],nid:100,tours:[]};MODE={on:true,pin:"",link:true}}
@@ -378,7 +378,7 @@ function vClasse(){
 <textarea id="impt" placeholder="Un élève par ligne"></textarea><p><button class="btn sec" data-a="impadd">Ajouter à la liste</button></p>
 ${I.msg?`<p class="hint"><b>${esc(I.msg)}</b></p>`:""}</div>
 <div class="card"><h2>Élèves à importer (${on})</h2>${list}
-<div class="row"><div><label for="impi">Points de départ</label><input id="impi" type="number" data-ch="impi" value="${I.init}"></div><button class="btn" data-a="impgo" data-c="1"${on&&!I.busy?"":" disabled"}>Remplacer la classe</button>${I.rows.length?`<button class="btn sec" data-a="impclr">Vider la liste</button>`:""}</div></div>`;
+<div class="row"><div><label for="impi">Points de départ</label><input id="impi" type="number" data-ch="impi" value="${I.init}"></div><button class="btn" data-a="impgo" data-c="1"${on&&!I.busy?"":" disabled"}>Remplacer la classe</button>${I.rows.length?`<button class="btn sec" data-a="impclr">Vider la liste</button>`:""}</div><p style="margin-top:10px"><button class="btn sec" data-a="demo" data-c="1">Charger une classe fictive de 28 élèves (pour essayer)</button></p><p class="hint">Ta classe actuelle est mise de côté : tu la retrouves dans « Autres classes » avec « Restaurer ».</p></div>`;
 }
 const snapS=()=>{const c=Object.assign({},S);delete c.classes;return {id:S.nid++,name:S.cls||S.title||"Classe",date:today(),n:S.players.length,data:JSON.stringify(c)}};
 function resetUiClass(){ui.tn=0;ui.tt=0;ui.tm=0;ui.pj="";ui.ab={};ui.w=ui.l=""}
@@ -455,6 +455,9 @@ function applyEv(ev){
     case "medsig":if(P(ev.pid)){S.sig=S.sig||{};const s=S.sig[ev.pid]=S.sig[ev.pid]||{};if(ev.v&&+ev.v!=ev.pid)s[ev.e]=+ev.v;else delete s[ev.e]}break;
     case "l4m":{const g=S.l4g&&S.l4g.g&&S.l4g.g[ev.i];if(g&&/^(a|b|p)$/.test(ev.key)&&ev.mi>=0&&ev.mi<8){g.r=g.r||{};const key=ev.mi+"_"+ev.key;if(ev.v==null||ev.v<=0)delete g.r[key];else g.r[key]=Math.min(+ev.v,ev.key=="p"?5:ev.key=="a"?11:109)}break}
     case "l3t":if(P(ev.pid)){S.l3s=S.l3s||{};const o=S.l3s[ev.pid]=S.l3s[ev.pid]||{r:{}};if(ev.v>=1&&ev.v<=20)o.t=+ev.v;else delete o.t}break;
+    case "l7s":{const g=l7G(S.l7,ev.i);if(g&&ev.k>=0&&ev.k<4&&(ev.x=="a"||ev.x=="b")){g.m=g.m||{};const key=ev.k+"_"+ev.x,v=ev.v==null?0:Math.max(0,Math.min(40,+ev.v));if(v)g.m[key]=v;else delete g.m[key]}break}
+    case "l7v":{const g=l7G(S.l7,ev.i);if(g&&ev.k>=0&&ev.k<4){g.v=g.v||{};if(ev.v)g.v["v"+ev.k]=1;else delete g.v["v"+ev.k];l7Fill(S.l7)}break}
+    case "l7c":{const g=l7G(S.l7,ev.i);if(g&&ev.k>=0&&ev.k<2&&(ev.x=="a"||ev.x=="b")){g.cd=g.cd||{};const key=ev.k+"_"+ev.x,l=ev.v==null?[]:String(ev.v).split(",").map(Number).filter(c=>c>=0&&c<5).slice(0,1);if(l.length)g.cd[key]=l.join(",");else delete g.cd[key]}break}
     case "l5k":if(P(ev.pid)&&ev.s>=0&&ev.s<5){S.l5s=S.l5s||{};const o=S.l5s[ev.pid]=S.l5s[ev.pid]||{r:{}};o.r=o.r||{};if(ev.v==null)delete o.r["s"+ev.s];else if(ev.v>=0&&ev.v<=10)o.r["s"+ev.s]=+ev.v}break;
     case "l3k":if(P(ev.pid)&&ev.s>=0&&ev.s<3&&ev.k>=0&&ev.k<10){S.l3s=S.l3s||{};const o=S.l3s[ev.pid]=S.l3s[ev.pid]||{r:{}};o.r=o.r||{};const key=ev.s+"_"+ev.k;if(ev.v==null)delete o.r[key];else if(ev.v>=0&&ev.v<=2)o.r[key]=+ev.v}break;
     case "l3":{const g=S.l3&&S.l3.g&&S.l3.g[ev.i];if(g){g.r=g.r||{};const key=ev.mi+"_"+ev.sd+"_"+ev.k;if(ev.v==null)delete g.r[key];else if(ev.v>=0&&ev.v<=3)g.r[key]=+ev.v}break}
@@ -492,6 +495,8 @@ function normSnap(s){
   s.med=O(s.med);Object.keys(s.med).forEach(p=>{s.med[p]=O(s.med[p]);Object.keys(s.med[p]).forEach(e=>{s.med[p][e]=O(s.med[p][e])})});
   s.sig=O(s.sig);Object.keys(s.sig).forEach(p=>{s.sig[p]=O(s.sig[p])});
   if(s.l4g&&typeof s.l4g=="object"){s.l4g.g=A(s.l4g.g).map(g=>({pl:A(g.pl),r:O(g.r)}))}else delete s.l4g;
+  s.l5s=O(s.l5s);Object.keys(s.l5s).forEach(p=>{const o=s.l5s[p]=O(s.l5s[p]);o.r=O(o.r)});
+  if(s.l7&&typeof s.l7=="object"){const L=s.l7;L.g=A(L.g).map(g=>Object.assign({},g,{m:O(g.m),cd:O(g.cd),v:O(g.v)}));L.cm=+L.cm||0;if(L.ch&&typeof L.ch=="object")L.ch={id:+L.ch.id,start:+L.ch.start,dur:+L.ch.dur||180,k:+L.ch.k||0};else delete L.ch;L.left=O(L.left);["or","ar"].forEach(k=>{L.left[k]=A(L.left[k])});L.teams=O(L.teams);["or","ar"].forEach(k=>{L.teams[k]=A(L.teams[k]).map(t=>A(t))});L.mx=+L.mx||5}else delete s.l7;
   s.l3s=O(s.l3s);Object.keys(s.l3s).forEach(p=>{const o=s.l3s[p]=O(s.l3s[p]);o.r=O(o.r)});
   if(s.l3&&typeof s.l3=="object"){s.l3.g=A(s.l3.g).map(g=>({pl:A(g.pl),r:O(g.r)}))}else delete s.l3;
   s.mba=O(s.mba);Object.keys(s.mba).forEach(p=>{s.mba[p]=A(s.mba[p])});
@@ -863,6 +868,13 @@ function vRadar(id){
   const lst=D.sk.map(x=>`<li><b>${esc(x.l)}</b> : ${x.seen?LV[Math.round(x.lv)]:"pas encore observé"} <small>(${x.f} fois point fort, ${x.w} fois point faible)</small></li>`).join("");
   return `<h3 class="ctr">Mon niveau dans chaque domaine</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Graphique en toile d’araignée : niveau du joueur dans chaque domaine, d’après les observations des coachs" style="width:100%;max-width:520px;display:block;margin:6px auto;overflow:visible">${rings}${axes}<polygon points="${poly}" fill="#c8102e" fill-opacity=".22" stroke="#c8102e" stroke-width="3" stroke-linejoin="round"/>${dots}${labs}${rl}</svg><ul class="hint" style="list-style:none;padding:0;columns:2 260px">${lst}</ul><p class="hint">Niveau calculé d’après ce que les coachs ont renseigné en points forts et en points faibles, tous tournois confondus (${D.m} match${D.m>1?"s":""} observé${D.m>1?"s":""}). Un domaine jamais cité reste au niveau « Correct » (point creux).</p>`;
 }
+const TRAV={cd:"Garde le bras souple et finis ton geste vers l’avant. Vise d’abord la régularité : renvoie chaque balle sur la table avant de chercher à attaquer.",rv:"Place-toi bien face à la balle, coude près du corps, et accompagne la balle avec la raquette. Cherche d’abord à renvoyer régulièrement.",sv:"Choisis ta zone avant de servir et regarde-la. Varie tes services (zone, vitesse) pour surprendre l’adversaire.",rs:"Observe le service de l’adversaire dès que sa raquette touche la balle, place-toi tôt et reste prêt, les genoux fléchis.",pl:"Avant de frapper, décide où tu envoies la balle. Varie les côtés (gauche et droite) et cherche le côté où l’adversaire est le plus en difficulté.",dp:"Reste en mouvement sur la pointe des pieds, fais de petits pas et reviens vers le centre après chaque coup.",cc:"Reste concentré sur chaque point : respire entre les points, annonce bien le score et oublie la faute précédente.",fp:"Annonce les points honnêtement, félicite ton adversaire après un beau point et respecte l’arbitre."};
+function vTravail(id){
+  const D=radOf(id);if(!D.m)return "";
+  const w=D.sk.filter(x=>x.w>0&&x.w>=x.f).sort((a,b)=>a.lv-b.lv||b.w-a.w).slice(0,3);
+  const body=w.length?`<ol class="rkl" style="list-style:none;padding:0">${w.map((x,i)=>`<li style="display:block;margin:10px 0;padding:10px 12px;border-radius:10px;background:#fdecee;border-left:6px solid #c8102e"><span class="rk r${i+1}">${i+1}</span> <b style="font-size:18px">${esc(x.l)}</b> <small>· ${LV[Math.round(x.lv)]}, cité ${x.w} fois par les coachs comme point faible</small><div style="margin-top:4px">${esc(TRAV[x.k]||"")}</div></li>`).join("")}</ol>`:`<p class="empty">Les coachs n’ont pas encore signalé de point à travailler. Continue ainsi !</p>`;
+  return `<h3>Points à travailler</h3>${body}<p class="hint" style="margin-top:-2px">Les domaines que les coachs ont le plus souvent signalés comme points faibles, tous tournois confondus, avec un conseil pour progresser.</p>`;
+}
 function vBilan(id,C){
   const ob=S.obs.map((o,k)=>({n:o.n,k})).filter(o=>o.n);
   if(!ob.length)return "";
@@ -911,7 +923,7 @@ function vJoueur(C){
   let body=`<p class="empty">Aucun joueur.</p>`;
   if(p&&r){
     const ms=C.log.filter(m=>m.wi==p.id||m.li==p.id).reverse();
-    body=`<div class="st">${av(p,"l")}<div><b style="font-size:20px">${esc(p.name)}</b><br>Rang ${r.rank}, <b>${r.pts} pts</b> (<span class="${cl(r.pts-r.init)}">${sg(r.pts-r.init)}</span>)<br><small>${r.m} match${r.m>1?"s":""} : ${r.w} victoire${r.w>1?"s":""}, ${r.l} défaite${r.l>1?"s":""}</small></div></div>`+vPts(p.id)+vRadar(p.id)+vBilan(p.id,C)+vEvol(p.id)+vEvolD(p.id)
+    body=`<div class="st">${av(p,"l")}<div><b style="font-size:20px">${esc(p.name)}</b><br>Rang ${r.rank}, <b>${r.pts} pts</b> (<span class="${cl(r.pts-r.init)}">${sg(r.pts-r.init)}</span>)<br><small>${r.m} match${r.m>1?"s":""} : ${r.w} victoire${r.w>1?"s":""}, ${r.l} défaite${r.l>1?"s":""}</small></div></div>`+vPts(p.id)+vRadar(p.id)+vTravail(p.id)+vBilan(p.id,C)+vEvol(p.id)+vEvolD(p.id)
     +(ms.length?`<div class="scroll"><table><thead><tr><th>Date</th><th>Adversaire</th><th>Résultat</th><th class="n">Son rang</th><th class="n">Points</th></tr></thead><tbody>${ms.map(m=>{const win=m.wi==p.id,pt=win?m.pw:m.pl;return `<tr><td>${fd(m.date)}</td><td><div class="who">${av(P(win?m.li:m.wi),"s")}<span>${esc(win?m.ln:m.wn)} <small>(rang ${win?m.rl:m.rw})</small></span></div></td><td class="${win?"pos":"neg"}">${win?"Victoire":"Défaite"}</td><td class="n">${win?m.rw:m.rl}</td><td class="n ${cl(pt)}">${sg(pt)}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="empty">Aucun match joué pour l’instant.</p>`)+vMed(p.id,C)+vLecon2(p.id,C)+vLecon3(p.id)+vLecon4(p.id)+vLecon5(p.id);
   }
   return `<div class="card"><h2>Matchs d’un joueur</h2><label for="spj">Joueur</label><select id="spj" data-ch="pj">${opts}</select><div style="margin-top:14px">${body}</div></div>`;
@@ -1309,12 +1321,12 @@ function vL3(C){
   const adm=MODE.on||LINK?"":`<div class="card"><p><button class="btn sec" data-a="l3gen" data-c="1">Refaire les poules (efface les résultats)</button> <button class="btn sec" data-a="l3del" data-c="1">Supprimer la leçon 3</button></p></div>`;
   return head+"<div style=\"margin-top:6px\">"+rules+chips+cls+ms+adm+"</div></div>";
 }
-/* ===== Leçon 7 : Coupe Davis et coaching ===== */
-const L7M=[[0,"A","C","Match 1"],[1,"B","D","Match 2"],[2,"AB","CD","Match 3 : le double"],[3,"A","D","Match 4"],[4,"B","C","Match 5"]];
+/* ===== Leçon 7 : Coupe Davis et coaching (championnat par groupes) ===== */
+const L7M=[[0,"A","C","Manche 1 · les numéros 1"],[1,"B","D","Manche 2 · les numéros 2"],[2,"A","C","Manche 3 · les numéros 1"],[3,"B","D","Manche 4 · les numéros 2"]];
 const L7CO={A:"B",B:"A",C:"D",D:"C"};
-const L7CARTES=[["1","♥","Balle sous contrôle","Leçon 1 · rebonds réguliers : je renvoie sur la table"],["2","♦","Faire durer l’échange","Leçon 2 · j’attends la faute de l’adversaire"],["3","♠","Service dans la zone visée","Leçon 3 · je choisis ma zone avant de servir"],["4","♣","Service qui gêne, puis attaque","Leçon 3 · 1000 points : gagner en 1 ou 2 frappes"],["5","♥","Viser les côtés","Leçon 4 · zones de côté, gauche et droite"],["6","♦","Viser le côté faible","Leçon 4 · j’observe, puis je joue dessus"],["7","♠","Smasher la balle facile","Leçon 5 · j’attaque quand la balle est haute"]];
-function l7Pt(g,k,sd,x){return +((g.m||{})[k+"_"+sd+"_"+x])||0}
-function l7Res(g){let a=0,b=0;for(let k=0;k<5;k++)for(let sd=0;sd<2;sd++){const x=l7Pt(g,k,sd,"a"),y=l7Pt(g,k,sd,"b");if(x==7&&y<7)a++;else if(y==7&&x<7)b++}return {a,b}}
+const L7CARTES=[["🛡️","#1565c0","Capitaine Mur","Fais durer l’échange","« Renvoie tout et reste patient : c’est l’adversaire qui fera la faute. »"],["🎯","#c8102e","Laser Service","Soigne ton service","« Choisis ta zone avant de servir, puis vise-la. »"],["↔️","#2e7d32","Flash des Côtés","Joue sur les côtés","« Envoie la balle vite à gauche, puis à droite. »"],["👁️","#7b2d8e","Œil de Lynx","Vise son point faible","« J’ai repéré son côté faible : joue dessus ! »"],["💥","#e07b00","Smash Titan","Smashe la balle facile","« Dès que la balle est haute, attaque et finis le point ! »"]];
+function l7Pt(g,k,x){return +((g.m||{})[k+"_"+x])||0}
+function l7Res(g){let a=0,b=0,n=0,pa=0,pb=0;for(let k=0;k<4;k++){if(!((g.v||{})["v"+k]))continue;const x=l7Pt(g,k,"a"),y=l7Pt(g,k,"b");n++;pa+=x;pb+=y;if(x>y)a++;else if(y>x)b++}return {a,b,n,pa,pb,done:n==4}}
 function l7Cards(g,k,x){const v=(g.cd||{})[k+"_"+x];return v?String(v).split(",").map(Number):[]}
 function svgL7(){
   const c=(x,y,col,l)=>`<circle cx="${x}" cy="${y}" r="14" fill="${col}"/>${sT(x,y+5,l,{s:14,c:"#fff"})}`;
@@ -1324,58 +1336,105 @@ ${c(165,30,"#2e7d32","C")}${c(165,216,"#c8102e","A")}${c(48,216,"#7b2d8e","B")}$
 ${sT(165,14,"équipe 2",{s:10,w:600,c:"#6a6061"})}${sT(165,246,"équipe 1",{s:10,w:600,c:"#6a6061"})}
 ${sT(48,242,"coach de A",{s:10,w:600,c:"#7b2d8e"})}${sT(252,56,"coach de C",{s:10,w:600,c:"#e07b00"})}
 <path d="M64 210 L146 214" fill="none" stroke="#7b2d8e" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#l7r)"/>${sT(94,200,"1 carte",{s:11,c:"#7b2d8e"})}
-${sT(150,264,"2 manches de 7 points · coaching entre les deux",{s:11})}`,"l7");
+${sT(150,264,"4 manches de 7 points · coaching après les manches 1 et 2",{s:11})}`,"l7");
 }
-function l7Rank(C,ti){
-  const pres=C.rows.filter(r=>!ui.ab[r.id]).map(r=>r.id),T=S.tours&&S.tours[ti],out=[];
-  if(T){T.tables.forEach(tb=>{const X=tstat(tb),st=X.c.any?X.c:X.o;tb.pl.map((id,i)=>i).filter(i=>!tb.ab[tb.pl[i]]&&pres.includes(tb.pl[i])).sort((x,y)=>st[x].rank-st[y].rank||x-y).forEach(i=>out.push(tb.pl[i]))})}
-  pres.forEach(id=>{if(!out.includes(id))out.push(id)});
-  return out;
+function l7Size(C){const n=C.rows.filter(r=>!ui.ab[r.id]).length,mx=Math.floor(n/4)*4;return Math.max(0,Math.min(mx,ui.l7n!=null?ui.l7n:Math.floor(Math.ceil(n/2)/4)*4))}
+function l7Pairs(ids){const n=ids.length,t=[];for(let i=0;i<Math.floor(n/2);i++)t.push([ids[i],ids[n-1-i]]);return t}
+function l7Robin(T){const arr=[...Array(T).keys()];if(T%2)arr.push(null);const out=[],m=arr.length;for(let r=0;r<m-1;r++){const rd=[];for(let i=0;i<m/2;i++){const x=arr[i],y=arr[m-1-i];if(x!=null&&y!=null)rd.push([x,y])}out.push(rd);arr.splice(1,0,arr.pop())}return out}
+function l7G(L,id){return L&&L.g?L.g.find(g=>g.id==id):null}
+function l7Win(g){const r=l7Res(g);if(r.a!=r.b)return r.a>r.b?1:2;let pa=0,pb=0;for(let k=0;k<4;k++){pa+=l7Pt(g,k,"a");pb+=l7Pt(g,k,"b")}if(pa!=pb)return pa>pb?1:2;return g.t1<g.t2?1:2}
+function l7Mk(L,gr,rd,tb,t1,t2){const T=L.teams[gr];return {id:gr+"_"+rd+"_"+tb,gr,rd,tb,t1,t2,A:T[t1][0],B:T[t1][1],C:T[t2][0],D:T[t2][1],m:{},cd:{}}}
+function l7Pair(order,played){
+  const n=order.length,used=new Array(n).fill(false),res=[];
+  const go=(strict)=>{const a=used.indexOf(false);if(a<0)return true;used[a]=true;
+    for(let b=a+1;b<n;b++){if(used[b])continue;if(strict&&played.has(order[a]+"-"+order[b]))continue;used[b]=true;res.push([order[a],order[b]]);if(go(strict))return true;res.pop();used[b]=false}
+    used[a]=false;return false};
+  if(go(true))return res;used.fill(false);res.length=0;go(false);return res}
+function l7Fill(L){
+  if(!L||!L.g||!L.teams)return;const mx=L.mx||5;
+  ["or","ar"].forEach(gr=>{
+    const nt=(L.teams[gr]||[]).length;if(nt<2)return;
+    for(let rd=0;rd<mx-1;rd++){
+      const cur=L.g.filter(g=>g.gr==gr&&g.rd==rd);
+      if(!cur.length||!cur.every(g=>l7Res(g).done))break;
+      if(L.g.some(g=>g.gr==gr&&g.rd==rd+1))continue;
+      const sub={teams:L.teams,g:L.g.filter(g=>g.gr==gr&&g.rd<=rd)},order=l7Table(sub,gr).map(x=>x.i),played=new Set();
+      sub.g.forEach(g=>{played.add(g.t1+"-"+g.t2);played.add(g.t2+"-"+g.t1)});
+      l7Pair(order,played).forEach(([x,y],tb)=>L.g.push(l7Mk(L,gr,rd+1,tb,x,y)));L.cm=0;delete L.ch;
+    }
+  });
 }
-function l7Src(){const T=S.tours||[];let k=-1;T.forEach((t,i)=>{if(t.tables.some(tb=>{const X=tstat(tb);return X.c.any||X.o.any}))k=i});return ui.l7t!=null&&T[ui.l7t]?ui.l7t:k}
-function l7Size(C){const n=C.rows.filter(r=>!ui.ab[r.id]).length;return ui.l7n!=null?Math.max(0,Math.min(n,ui.l7n)):Math.ceil(n/2)}
 function l7New(C){
-  const ti=l7Src(),R=l7Rank(C,ti),n=l7Size(C),grp={or:R.slice(0,n),ar:R.slice(n)},g=[],left={or:[],ar:[]};
-  ["or","ar"].forEach(k=>{const L=grp[k],m=Math.floor(L.length/4);for(let i=0;i<m;i++){const q=L.slice(4*i,4*i+4);g.push({gr:k,A:q[0],B:q[3],C:q[1],D:q[2],m:{},cd:{}})}left[k]=L.slice(4*m)});
-  return {d:today(),src:ti,n,g,left};
+  const R=C.rows.filter(r=>!ui.ab[r.id]).map(r=>r.id),n=l7Size(C),na=Math.floor((R.length-n)/4)*4,grp={or:R.slice(0,n),ar:R.slice(n,n+na)},teams={},left={or:[],ar:[]},g=[];
+  const L={d:today(),n,mx:5,cm:0,g,left,teams};
+  ["or","ar"].forEach(k=>{teams[k]=l7Pairs(grp[k]);const T=Math.floor(teams[k].length/2);for(let j=0;j<T;j++)g.push(l7Mk(L,k,0,j,2*j,2*j+1))});
+  left.ar=R.slice(n+na);
+  return L;
 }
+function l7Table(L,gr){
+  const T=(L.teams&&L.teams[gr])||[],st=T.map((t,i)=>({i,t,pts:0,v:0,n:0,d:0,pf:0,pc:0,j:0,pp:0}));
+  L.g.filter(x=>x.gr==gr).forEach(g=>{const r=l7Res(g),a=st[g.t1],b=st[g.t2];if(!a||!b)return;
+    a.pf+=r.a;a.pc+=r.b;b.pf+=r.b;b.pc+=r.a;a.pp+=r.pa;b.pp+=r.pb;
+    if(!r.done)return;a.j++;b.j++;
+    if(r.a>r.b){a.pts+=3;a.v++;b.d++}else if(r.a<r.b){b.pts+=3;b.v++;a.d++}else{a.pts++;b.pts++;a.n++;b.n++}});
+  st.forEach(x=>{x.diff=x.pf-x.pc});
+  st.sort((x,y)=>y.pts-x.pts||y.diff-x.diff||y.pf-x.pf||y.pp-x.pp||x.i-y.i);
+  let rk=0;st.forEach((x,i)=>{if(i==0||x.pts!=st[i-1].pts||x.diff!=st[i-1].diff||x.pf!=st[i-1].pf||x.pp!=st[i-1].pp)rk=i+1;x.rk=rk});
+  return st;
+}
+function l7Fmt(r){return r>0?Math.floor(r/60)+":"+String(r%60).padStart(2,"0"):"Stop !"}
+function l7Rem(){const c=S.l7&&S.l7.ch;return c?Math.ceil((c.start+c.dur*1000-Date.now())/1000):null}
+const L7B={};
+function l7Tick(){
+  const c=S.l7&&S.l7.ch,r=l7Rem();
+  document.querySelectorAll(".l7t").forEach(e=>{if(r==null){e.textContent="3:00";e.style.color="";return}e.textContent=l7Fmt(r);e.style.color=r>0?"":"var(--neg)"});
+  if(c&&r!=null&&r<=0&&r>-4&&!L7B[c.id]){L7B[c.id]=1;try{const A=new (window.AudioContext||window.webkitAudioContext)(),o=A.createOscillator();o.connect(A.destination);o.frequency.value=880;o.start();setTimeout(()=>o.stop(),900)}catch(e){}}
+}
+setInterval(l7Tick,250);
 function vL7(C){
   const op=!!ui.open.l7,L=S.l7,head=`<div style="margin:14px 0"><button type="button" class="btn sec${op?" on":""}" data-a="tog" data-v="l7" aria-expanded="${op}">Leçon 7 · Coupe Davis et coaching ${op?"▲":"▼"}</button>`;
   if(!op)return head+"</div>";
-  const pres=C.rows.filter(r=>!ui.ab[r.id]),N=pres.length,no=l7Size(C),na=N-no,ti=l7Src(),T=S.tours||[];
-  const rules=`<div class="card"><h2>Coupe Davis et coaching</h2><p><b>Ton but :</b> trouver une stratégie qui met ton adversaire en difficulté, et savoir observer et conseiller ton partenaire.</p>
-${svgL7()}
-<h3>Le fonctionnement</h3><ul><li><b>2 équipes de 2</b> (A et B contre C et D) jouent sur <b>une seule table</b>. A et C sont les « numéros 1 ». Vous vous arbitrez vous-mêmes.</li><li><b>5 matchs</b> : 4 simples et 1 double. Quand ton partenaire joue, tu l’observes.</li><li>Chaque match se joue en <b>2 manches de 7 points</b>. Il n’y a pas de 3ème manche.</li><li><b>Entre les 2 manches</b>, le coaching est obligatoire : le coach choisit <b>1 carte</b> stratégie (2 au maximum) et la <b>valide</b>. Son joueur l’applique en 2ème manche.</li><li>L’équipe qui gagne le plus de manches l’emporte.</li></ul>
-<h3>Observer et coacher</h3><ul><li>Cherche ce qui marche : quel service ? quelle zone ? quel effet ? Et les zones à éviter.</li><li>À la fin, faites un bilan rapide : la carte jouée a-t-elle été appliquée <b>et</b> efficace ?</li></ul>
-<h3>Les 7 cartes stratégie (ce que tu as appris dans les leçons 1 à 5)</h3>${l7Deck(null)}</div>`;
-  const srcTxt=ti>=0?`le classement du <b>tournoi ${ti+1}</b>`:`le classement des <b>Défis</b> (aucun tournoi avec résultats)`;
-  const adm=MODE.on||LINK?"":`<div class="card"><h2>Former les équipes</h2><p class="hint">Les équipes sont faites d’après ${srcTxt} : le groupe <b>Or</b> réunit les premiers, le groupe <b>Argent</b> les suivants. Dans chaque groupe, on prend 4 élèves de rang voisin : le 1er et le 4ème forment l’équipe 1, le 2ème et le 3ème l’équipe 2, pour des équipes équilibrées.</p>
-${T.length>1?`<div class="chips">${T.map((t,k)=>`<button class="btn sec sm${ti==k?" on":""}" data-a="l7t" data-v="${k}">Tournoi ${k+1}</button>`).join("")}</div>`:""}
-<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span style="flex:1 1 auto"><b>Groupe Or : ${no} élève${no>1?"s":""}</b> · Argent : ${na}</span><button type="button" class="btn sec sm" data-a="l7n" data-v="-1" aria-label="Un élève de moins dans le groupe Or" style="min-width:48px;min-height:48px;font-size:22px">−</button><button type="button" class="btn sec sm" data-a="l7n" data-v="1" aria-label="Un élève de plus dans le groupe Or" style="min-width:48px;min-height:48px;font-size:22px">+</button></div>
-<p class="hint">Or : ${Math.floor(no/4)} rencontre${Math.floor(no/4)>1?"s":""}${no%4?` (${no%4} sans équipe)`:""} · Argent : ${Math.floor(na/4)} rencontre${Math.floor(na/4)>1?"s":""}${na%4?` (${na%4} sans équipe)`:""}. Ajustez la taille du groupe Or pour que chaque groupe soit un multiple de 4 (par exemple 16 et 12 avec 28 élèves).</p>
-<p><button class="btn${L?" sec":""}" data-a="l7gen"${L?' data-c="1"':""}>${L?"Refaire les rencontres (efface les scores)":"Créer les rencontres"}</button>${L?` <button class="btn sec" data-a="l7del" data-c="1">Supprimer la leçon 7</button>`:""}</p></div>`;
-  if(!L||!L.g)return head+'<div style="margin-top:6px">'+rules+adm+"</div></div>";
-  const GN={or:["Or","#d9a520"],ar:["Argent","#a9afb5"]},cnt={or:0,ar:0},lab=L.g.map(g=>{cnt[g.gr]++;return GN[g.gr][0]+" "+cnt[g.gr]});
-  const pi=Math.min(ui.l7p||0,L.g.length-1),g=L.g[pi],R=l7Res(g),nn=i=>esc(nm(i));
-  const dot=c=>`<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c};vertical-align:-2px"></span>`;
-  const chips=`<div class="card"><h2>Rencontres (${fd(L.d)})</h2><div class="chips">${L.g.map((x,k)=>`<button class="btn sec sm${pi==k?" on":""}" data-a="l7p" data-v="${k}">${dot(GN[x.gr][1])} ${lab[k]}</button>`).join("")}</div></div>`;
-  const e1=`${nn(g.A)} et ${nn(g.B)}`,e2=`${nn(g.C)} et ${nn(g.D)}`;
-  const who=c=>c==="AB"?`${nn(g.A)} et ${nn(g.B)}`:c==="CD"?`${nn(g.C)} et ${nn(g.D)}`:nn(g[c]);
-  const stp=(k,sd,x,val,lb)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="flex:1 1 auto">${lb}</span><button type="button" class="btn sec sm" data-a="l7s" data-v="${pi},${k},${sd},${x},-1" aria-label="Moins : ${lb.replace(/<[^>]*>/g," ")}" style="min-width:48px;min-height:48px;font-size:22px">−</button><b style="min-width:36px;text-align:center;font-size:24px">${val}</b><button type="button" class="btn sm" data-a="l7s" data-v="${pi},${k},${sd},${x},1" aria-label="Plus : ${lb.replace(/<[^>]*>/g," ")}" style="min-width:48px;min-height:48px;font-size:22px">+</button></div>`;
-  const sum=`<div class="card"><h2>${dot(GN[g.gr][1])} ${lab[pi]} : manches gagnées</h2><p style="font-size:20px"><b>Équipe 1 (${e1}) : ${R.a}</b><br><b>Équipe 2 (${e2}) : ${R.b}</b></p><p class="hint">${R.a==R.b?(R.a?"Égalité pour le moment.":"Aucune manche terminée."):"L’équipe "+(R.a>R.b?"1":"2")+" mène."} A et C sont les numéros 1.</p></div>`;
-  const coachBlock=(k,p1,p2)=>{const side=(x,pp)=>{const co=pp==="AB"||pp==="CD"?(pp==="AB"?"B":"D"):L7CO[pp],coT=pp==="AB"?`${nn(g.A)} et ${nn(g.B)} se concertent`:pp==="CD"?`${nn(g.C)} et ${nn(g.D)} se concertent`:`Coach : ${nn(g[co])}`,sel=l7Cards(g,k,x);return `<div style="margin:6px 0"><div><b>${who(pp)}</b> · ${coT}</div>${l7Deck({gi:pi,k,x,sel})}<div class="hint" style="margin:2px 0">${sel.length?"Carte"+(sel.length>1?"s":"")+" validée"+(sel.length>1?"s":"")+" pour la 2ème manche : <b>"+sel.map(i=>L7CARTES[i][2]).join(" + ")+"</b>":"Le coach touche une carte pour la valider (2 au maximum)."}</div></div>`};
-    return `<div style="margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7e0;border:2px dashed #e0a800"><b>Temps de coaching</b>${side("a",p1)}${side("b",p2)}</div>`};
-  const ms=L7M.map(([k,p1,p2,tt])=>{
-    const mh=[0,1].map(sd=>{const a=l7Pt(g,k,sd,"a"),b=l7Pt(g,k,sd,"b"),w=a==7&&b<7?1:b==7&&a<7?2:0;return `<div style="margin:8px 0;padding:6px 10px;border-radius:10px;${w?"background:#e3f3e5":"background:#f6f2f2"}"><b>${sd+1}${sd?"ème":"ère"} manche</b>${w?` · <span style="color:#1b6b3a">gagnée par ${w==1?who(p1):who(p2)}</span>`:""}${stp(k,sd,"a",a,who(p1))}${stp(k,sd,"b",b,who(p2))}</div>${sd==0?coachBlock(k,p1,p2):""}`}).join("");
-    return `<div class="card"><h3>${tt} : ${who(p1)} contre ${who(p2)}</h3>${mh}</div>`}).join("");
-  const rows=L.g.map((t,i)=>{const r=l7Res(t);return `<tr><td>${dot(GN[t.gr][1])} ${lab[i]}</td><td>${nn(t.A)} et ${nn(t.B)}</td><td class="n"><b>${r.a}</b></td><td class="n"><b>${r.b}</b></td><td>${nn(t.C)} et ${nn(t.D)}</td><td>${r.a==r.b?(r.a?"Égalité":"–"):"Équipe "+(r.a>r.b?"1":"2")}</td></tr>`}).join("");
+  const pres=C.rows.filter(r=>!ui.ab[r.id]),N=pres.length,no=l7Size(C),na=Math.floor((N-no)/4)*4,sans=N-no-na;
+  const rules=`<details class="card"><summary><b>Règles en bref</b></summary><ul><li>Une rencontre : 2 équipes de 2 (A et B contre C et D) sur une table. A et C sont les numéros 1, B et D les numéros 2.</li><li><b>4 manches de 3 minutes</b> : manche 1 : A contre C ; manche 2 : B contre D ; manche 3 : A contre C ; manche 4 : B contre D. Celui qui a le plus de points gagne la manche.</li><li>À la fin des manches 1 et 2, le coach donne <b>1 seul conseil</b> à son joueur en touchant une carte pour la manche suivante de son joueur.</li><li>Score de la rencontre = manches gagnées (sur 4). Victoire 3 points, égalité 1, défaite 0.</li><li>Quand toutes les rencontres du tour sont finies, le classement est mis à jour et le tour suivant apparaît : 1er contre 2ème, 3ème contre 4ème…</li></ul><h3>Les 5 cartes conseil du coach</h3>${l7Deck(null)}</details>`;
+  const adm=MODE.on||LINK?"":`<div class="card"><h2>Former les équipes</h2><p class="hint">Les équipes sont faites d’après le <b>classement des Défis</b> des élèves présents. Le <b>groupe Or</b> réunit les élèves classés de 1 à la médiane (ici le ${no}ème), le <b>groupe Argent</b> les suivants. Dans chaque groupe : le 1er joue avec le dernier du groupe, le 2ème avec l’avant-dernier, et ainsi de suite. Chaque groupe compte un nombre pair d’équipes (donc un nombre d’élèves multiple de 4), pour que toutes les équipes aient un adversaire à chaque tour. Le groupe Argent peut être plus grand. Les élèves en trop (les moins bien classés) sont signalés « sans équipe ».</p>
+<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span style="flex:1 1 auto"><b>Groupe Or : ${no} élève${no>1?"s":""}</b> (du 1er au ${no}ème) · <b>Argent : ${na}</b>${sans?` · sans équipe : ${sans}`:""}</span><button type="button" class="btn sec sm" data-a="l7n" data-v="-1" aria-label="4 élèves de moins dans le groupe Or" style="min-width:48px;min-height:48px;font-size:22px">−</button><button type="button" class="btn sec sm" data-a="l7n" data-v="1" aria-label="4 élèves de plus dans le groupe Or" style="min-width:48px;min-height:48px;font-size:22px">+</button></div>
+<p class="hint">Or : ${no/2} équipe${no>2?"s":""} · Argent : ${na/2} équipe${na>2?"s":""}. Par défaut le groupe Or est la moitié de la classe, arrondie au multiple de 4 inférieur ; ajustez-le avec − et + (de 4 en 4) si besoin.</p>
+${L?`<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span style="flex:1 1 auto"><b>Rencontres par équipe : ${L.mx||5}</b></span><button type="button" class="btn sec sm" data-a="l7mx" data-v="-1" aria-label="Une rencontre de moins par équipe" style="min-width:48px;min-height:48px;font-size:22px">−</button><button type="button" class="btn sec sm" data-a="l7mx" data-v="1" aria-label="Une rencontre de plus par équipe" style="min-width:48px;min-height:48px;font-size:22px">+</button></div>`:""}<p><button class="btn${L?" sec":""}" data-a="l7gen"${L?' data-c="1"':""}>${L?"Refaire les équipes et le calendrier (efface les scores)":"Créer les équipes et le calendrier"}</button>${L?` <button class="btn sec" data-a="l7del" data-c="1">Supprimer la leçon 7</button>`:""}</p></div>`;
+  if(!L||!L.g||!L.g.length)return head+'<div style="margin-top:6px">'+rules+adm+"</div></div>";
+  const GN={or:["Or","#d9a520"],ar:["Argent","#a9afb5"]},nn=i=>esc(nm(i)),dot=c=>`<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c};vertical-align:-2px"></span>`;
+  const pl=(MODE.on||LINK)&&P(ui.pj)?+ui.pj:null,nT=(L.teams.or||[]).length/2||0;
+  const tbn=g=>(g.gr=="or"?0:nT)+g.tb+1;
+  const mineG=g=>pl!=null&&[g.A,g.B,g.C,g.D].includes(pl);
+  const ord=(a,b)=>(mineG(b)-mineG(a))||a.rd-b.rd||(a.gr==b.gr?a.tb-b.tb:a.gr=="or"?-1:1);
+  if(L.g.some(g=>!g.id||!L.teams.or))return head+'<div style="margin-top:6px"><div class="card"><p>Cette leçon 7 a été créée avec une ancienne version.'+(MODE.on||LINK?" Le prof doit la recréer.":"")+'</p></div>'+adm+"</div></div>";
+  const mnR={};L.g.forEach(g=>{if(!l7Res(g).done&&(mnR[g.gr]==null||g.rd<mnR[g.gr]))mnR[g.gr]=g.rd});
+  const todo=L.g.filter(g=>!l7Res(g).done&&g.rd==mnR[g.gr]).sort(ord);
+  const own=pl==null?null:(todo.find(mineG)||{}).id||null;
+  const opened=ui.l7o!=null?ui.l7o:own;
+  const wait=pl!=null&&!own&&L.g.some(mineG)?`<div class="card" style="border:3px solid #c8102e"><h2>En attente du tour suivant</h2><p>${L.g.filter(g=>mineG(g)&&l7Res(g).done).length>=(L.mx||5)?"Tu as joué toutes tes rencontres.":"Ta rencontre est terminée. Dès que toutes les rencontres sont finies, le classement est mis à jour et ta prochaine rencontre apparaît ici."}</p></div>`:"";
+  const tch=!(MODE.on||LINK),r0=l7Rem(),cm=Math.max(0,Math.min(3,L.cm||0));
+  const chr=`<div class="card"><h2>Chrono · manche ${(L.ch?L.ch.k:cm)+1}</h2><div style="text-align:center"><b class="l7t" style="font:700 64px/1 'Barlow Condensed',Barlow,sans-serif">${r0==null?"3:00":l7Fmt(r0)}</b></div>${tch?`<div class="chips" style="margin-top:8px">${[0,1,2,3].map(k=>`<button class="btn sec sm${cm==k?" on":""}" data-a="l7cm" data-v="${k}">Manche ${k+1}</button>`).join("")}</div><p style="margin-top:8px"><button class="btn" data-a="l7chr" data-v="${cm}">Lancer le chrono de 3 minutes (manche ${cm+1}) sur toutes les tablettes</button> <button class="btn sec" data-a="l7stop">Arrêter</button></p>`:""}</div>`;
+  const stp=(gi,k,x,val,lb)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="flex:1 1 auto">${lb}</span><button type="button" class="btn sec sm" data-a="l7s" data-v="${gi},${k},${x},-1" aria-label="Moins : ${lb.replace(/<[^>]*>/g," ")}" style="min-width:48px;min-height:48px;font-size:22px">−</button><b style="min-width:36px;text-align:center;font-size:24px">${val}</b><button type="button" class="btn sm" data-a="l7s" data-v="${gi},${k},${x},1" aria-label="Plus : ${lb.replace(/<[^>]*>/g," ")}" style="min-width:48px;min-height:48px;font-size:22px">+</button></div>`;
+  const detail=(gi,g)=>{
+    const who=c=>nn(g[c]),pw=c=>`<span style="display:inline-flex;align-items:center;gap:6px;margin:2px 6px 2px 0">${av(P(g[c]))}<b>${nn(g[c])}</b></span>`;
+    const consigne=(k,p1,p2)=>{const pk=k-2;return `<div style="margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7e0;border:2px solid #e0a800"><b>Consignes des coachs pour cette manche</b>${[["a",p1],["b",p2]].map(([x,pp])=>{const l=l7Cards(g,pk,x),c=l.length?L7CARTES[l[0]]:null;return `<div style="display:flex;align-items:center;gap:10px;margin:6px 0;padding:6px;border-radius:10px;background:#fff;${c?"border:3px solid "+c[1]:"border:2px dashed #bbb"}"><span style="flex:none">${av(P(g[L7CO[pp]]))}</span><div style="flex:1 1 auto"><div><b>${nn(g[L7CO[pp]])}</b> dit à <b>${nn(g[pp])}</b> :</div>${c?`<div style="font-size:18px;line-height:1.25"><span style="font-size:28px">${c[0]}</span> <b style="color:${c[1]}">${c[2]}</b> · ${c[3]}</div><div>${c[4]}</div>`:`<div class="hint">Pas de consigne donnée.</div>`}</div></div>`}).join("")}</div>`};
+    const coachBlock=(k,p1,p2)=>{const side=(x,pp)=>{const sel=l7Cards(g,k,x);return `<div style="margin:6px 0"><div><b>${nn(g[L7CO[pp]])}</b> conseille <b>${who(pp)}</b></div>${l7Deck({gi,k,x,sel})}<div class="hint" style="margin:2px 0">${sel.length?"Conseil donné pour la manche "+(k+3)+" : <b>"+sel.map(i=>L7CARTES[i][2]).join(" + ")+"</b>":"Coach : touche la carte du conseil que tu donnes à ton joueur (un seul)."}</div></div>`};
+      return `<div style="margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff7e0;border:2px dashed #e0a800"><b>Coaching : le conseil du coach pour la manche ${k+3}</b>${side("a",p1)}${side("b",p2)}</div>`};
+    return L7M.map(([k,p1,p2,tt])=>{const a=l7Pt(g,k,"a"),b=l7Pt(g,k,"b"),vd=!!(g.v||{})["v"+k];
+      return `<div class="card"><h3>${tt}</h3><div style="margin:8px 0;padding:6px 10px;border-radius:10px;${vd?"background:#e3f3e5":"background:#f6f2f2"}"><div>${pw(p1)} <b>contre</b> ${pw(p2)}</div>${k>=2?consigne(k,p1,p2):""}${stp(gi,k,"a",a,who(p1))}${stp(gi,k,"b",b,who(p2))}<button type="button" class="btn${vd?" sec":""}" data-a="l7v" data-v="${gi},${k}" style="min-height:48px;width:100%">${vd?"✓ Score validé"+(a>b?" · "+who(p1)+" gagne":b>a?" · "+who(p2)+" gagne":" · égalité")+" (toucher pour corriger)":"Valider le score de la manche "+(k+1)}</button></div>${k<2?coachBlock(k,p1,p2):""}</div>`}).join("");
+  };
+  const pc=id=>`<span style="display:inline-flex;align-items:center;gap:6px;margin:3px 8px 3px 0">${av(P(id))}${nn(id)}</span>`;
+  const cardG=g=>{
+    const r=l7Res(g),isO=opened===g.id,mn=mineG(g);
+    return `<div class="card" style="${mn?"border:3px solid #c8102e":""}"><button type="button" class="btn sec${isO?" on":""}" data-a="l7o" data-v="${g.id}" aria-expanded="${isO}" style="width:100%;text-align:left;white-space:normal"><span>${dot(GN[g.gr][1])} <b>Table ${tbn(g)} · ${GN[g.gr][0]} · tour ${g.rd+1}</b>${mn?" · <b style='color:#c8102e'>Ma rencontre</b>":""}</span><br>${pc(g.A)}${pc(g.B)} <b>contre</b> ${pc(g.C)}${pc(g.D)}<br><b style="font-size:20px">${r.a} – ${r.b}</b> <small>(${r.n} manche${r.n>1?"s":""} sur 4)</small> ${isO?"▲":"▼"}</button>${isO?`<div style="margin-top:8px">${detail(g.id,g)}</div>`:""}</div>`};
+  const list=wait+(todo.length?`<h2 style="margin:14px 0 6px">Rencontres en cours</h2>`+todo.map(cardG).join(""):`<div class="card"><p>Toutes les rencontres sont terminées.</p></div>`);
+  const cl=["or","ar"].map(k=>{const t=l7Table(L,k);if(!t.length)return "";return `<div class="card"><h2>${dot(GN[k][1])} Classement du groupe ${GN[k][0]}</h2><div class="scroll"><table><thead><tr><th>Rang</th><th>Équipe</th><th class="n">Pts</th><th class="n">J</th><th class="n">Manches</th><th class="n">Points marqués</th></tr></thead><tbody>${t.map(x=>`<tr><td><span class="rk r${x.rk<4?x.rk:0}">${x.rk}</span></td><td style="white-space:nowrap">${av(P(x.t[0]),"s")} ${av(P(x.t[1]),"s")} ${nn(x.t[0])} et ${nn(x.t[1])}</td><td class="n"><b>${x.pts}</b></td><td class="n">${x.j}</td><td class="n">${x.pf}–${x.pc}</td><td class="n">${x.pp}</td></tr>`).join("")}</tbody></table></div></div>`}).join("");
   const lf=["or","ar"].filter(k=>L.left&&L.left[k]&&L.left[k].length).map(k=>`${GN[k][0]} : ${L.left[k].map(i=>nn(i)).join(", ")}`).join(" · ");
-  const res=`<div class="card"><h2>Résultats des rencontres</h2><div class="scroll"><table><thead><tr><th>Rencontre</th><th>Équipe 1</th><th class="n">Manches</th><th class="n">Manches</th><th>Équipe 2</th><th>Vainqueur</th></tr></thead><tbody>${rows}</tbody></table></div>${lf?`<p class="hint">Sans équipe : ${lf}.</p>`:""}</div>`;
-  return head+'<div style="margin-top:6px">'+rules+chips+sum+ms+res+adm+"</div></div>";
+  return head+'<div style="margin-top:6px">'+chr+list+cl+(lf?`<p class="hint">Élèves sans équipe : ${lf}.</p>`:"")+rules+adm+"</div></div>";
 }
 function l7Deck(o){
-  const cd=([r,su,t,sub],i)=>{const red=su=="♥"||su=="♦",col=red?"#c8102e":"#241c1d",on=o&&o.sel&&o.sel.includes(i),tag=o?"button":"div",att=o?` type="button" data-a="l7c" data-v="${o.gi},${o.k},${o.x},${i}" aria-pressed="${!!on}" aria-label="Carte ${r} : ${t}${on?" (validée)":""}"`:"";
-    return `<${tag}${att} style="position:relative;width:104px;min-height:146px;padding:8px 6px 24px;border-radius:12px;border:3px solid ${on?"#1b6b3a":"#241c1d"};background:${on?"#e3f3e5":"#fff"};color:${col};text-align:center;cursor:${o?"pointer":"default"};box-shadow:${on?"0 0 0 3px #7ac98f":"0 1px 3px rgba(0,0,0,.25)"};font-family:inherit"><span style="position:absolute;top:4px;left:7px;font-weight:700;font-size:16px;line-height:1">${r}<br>${su}</span><span style="position:absolute;bottom:4px;right:7px;font-weight:700;font-size:16px;line-height:1;transform:rotate(180deg)">${r}<br>${su}</span><span style="display:block;font-size:34px;line-height:1;margin:14px 0 6px">${su}</span><b style="display:block;font-size:14px;line-height:1.2;color:#241c1d">${t}</b><span style="display:block;font-size:11px;line-height:1.2;margin-top:2px;color:#6a6061">${sub}</span>${on?`<span style="display:block;margin-top:4px;font-size:12px;font-weight:700;color:#1b6b3a">✔ validée</span>`:""}</${tag}>`};
+  const cd=([em,col,t,st,pw],i)=>{const on=o&&o.sel&&o.sel.includes(i),tag=o?"button":"div",att=o?` type="button" data-a="l7c" data-v="${o.gi},${o.k},${o.x},${i}" aria-pressed="${!!on}" aria-label="Carte ${t} : ${st}${on?" (validée)":""}"`:"";
+    return `<${tag}${att} style="position:relative;width:128px;min-height:176px;padding:8px 6px 10px;border-radius:14px;border:4px solid ${col};background:${on?"#e3f3e5":"linear-gradient(160deg,#fff 55%,"+col+"22)"};text-align:center;cursor:${o?"pointer":"default"};box-shadow:${on?"0 0 0 4px #7ac98f":"0 2px 4px rgba(0,0,0,.25)"};font-family:inherit"><span style="display:block;font-size:40px;line-height:1.1;margin:2px 0 4px">${em}</span><b style="display:block;font-size:16px;line-height:1.1;color:${col};text-transform:uppercase;letter-spacing:.3px">${t}</b><span style="display:block;font-size:13px;line-height:1.2;margin:4px 0;font-weight:700;color:#241c1d">${st}</span><span style="display:block;font-size:11px;line-height:1.25;color:#6a6061">${pw}</span>${on?`<span style="display:block;margin-top:4px;font-size:13px;font-weight:700;color:#1b6b3a">✔ conseil donné</span>`:""}</${tag}>`};
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0">${L7CARTES.map(cd).join("")}</div>`;
 }
 function vTournoi(C){return vL3(C)+vL4(C)+vL7(C)+vTournoi0(C)}
@@ -1431,14 +1490,18 @@ function act(a,v){
     const n=C.rows.filter(r=>!ui.ab[r.id]).length;
     if(n<4){alert("Il faut au moins 4 élèves présents.");return}
     const N=l7New(C);if(!N.g.length){alert("Aucune rencontre possible : chaque groupe doit compter au moins 4 élèves.");return}
-    S.l7=N;ui.l7p=0;ui.open.l7=true;
+    S.l7=N;ui.l7o=null;ui.open.l7=true;
   }
-  else if(a=="l7del"){delete S.l7;ui.l7p=0}
-  else if(a=="l7p"){ui.l7p=+v}
-  else if(a=="l7t"){ui.l7t=+v}
-  else if(a=="l7n"){const n=C.rows.filter(r=>!ui.ab[r.id]).length;ui.l7n=Math.max(0,Math.min(n,l7Size(C)+ +v))}
-  else if(a=="l7c"){const [i,k,x,c]=v.split(",").map((z,j)=>j==2?z:+z),g=S.l7&&S.l7.g[i];if(g&&(x=="a"||x=="b")&&c>=0&&c<7){g.cd=g.cd||{};const key=k+"_"+x;let l=l7Cards(g,k,x);if(l.includes(c))l=l.filter(z=>z!=c);else if(l.length<2)l.push(c);if(l.length)g.cd[key]=l.sort((p,q)=>p-q).join(",");else delete g.cd[key]}}
-  else if(a=="l7s"){const [i,k,sd,x,d]=v.split(",").map((z,j)=>j==3?z:+z),g=S.l7&&S.l7.g[i];if(g&&(x=="a"||x=="b")){g.m=g.m||{};const o=x=="a"?"b":"a",key=k+"_"+sd+"_"+x,cur=+g.m[key]||0,oth=+g.m[k+"_"+sd+"_"+o]||0;let nv=Math.max(0,Math.min(7,cur+d));if(nv==7&&oth==7)nv=6;if(nv)g.m[key]=nv;else delete g.m[key]}}
+  else if(a=="l7del"){delete S.l7;ui.l7o=null}
+  else if(a=="l7mx"){if(S.l7){S.l7.mx=Math.max(1,Math.min(12,(S.l7.mx||5)+ +v));l7Fill(S.l7)}}
+  else if(a=="l7o"){ui.l7o=ui.l7o===v?-1:v}
+  else if(a=="l7n"){const n=C.rows.filter(r=>!ui.ab[r.id]).length;ui.l7n=Math.max(0,Math.min(n,l7Size(C)+4* +v))}
+  else if(a=="l7c"){const [i,k,x,c]=v.split(",").map((z,j)=>j==0||j==2?z:+z),g=l7G(S.l7,i);if(g&&(x=="a"||x=="b")&&c>=0&&c<5&&k>=0&&k<2){let l=l7Cards(g,k,x);if(l.includes(c))l=l.filter(z=>z!=c);else l=[c];E({t:"l7c",i,k,x,v:l.length?l.sort((p,q)=>p-q).join(","):null})}}
+  else if(a=="l7s"){const [i,k,x,d]=v.split(",").map((z,j)=>j==0||j==2?z:+z),g=l7G(S.l7,i);if(g&&(x=="a"||x=="b")){E({t:"l7s",i,k,x,v:Math.max(0,Math.min(40,l7Pt(g,k,x)+d))||null})}}
+  else if(a=="l7v"){const [i,k]=v.split(",").map((z,j)=>j==0?z:+z),g=l7G(S.l7,i);if(g)E({t:"l7v",i,k,v:(g.v||{})["v"+k]?0:1})}
+  else if(a=="l7chr"){if(S.l7){const k=+v,n=Date.now();S.l7.ch={id:n,start:n,dur:180,k};S.l7.cm=Math.min(3,k+1)}}
+  else if(a=="l7stop"){if(S.l7)delete S.l7.ch}
+  else if(a=="l7cm"){if(S.l7)S.l7.cm=+v}
   else if(a=="l5k"){const [sr,n]=v.split(",").map(Number);if(P(ui.pj)){const cur=(((S.l5s||{})[ui.pj]||{}).r||{})["s"+sr];E({t:"l5k",pid:+ui.pj,s:sr,v:cur===n?null:n})}}
   else if(a=="l3k"){const [sr,k]=v.split(",").map(Number);if(P(ui.pj)){const cur=(((S.l3s||{})[ui.pj]||{}).r||{})[sr+"_"+k];E({t:"l3k",pid:+ui.pj,s:sr,k,v:cur==null?2:cur==0?null:cur-1})}}
   else if(a=="l3s"){const [i,mi,sd,k]=v.split(",").map(Number),g=S.l3&&S.l3.g[i];if(g){const cur=(g.r||{})[mi+"_"+sd+"_"+k];E({t:"l3",i,mi,sd,k,v:cur==null?3:cur==0?null:cur-1})}}
@@ -1512,6 +1575,14 @@ function act(a,v){
     S={title:S.title,players:rows.map(r=>{const q={id:S.nid++,name:r.name.trim(),init:+I.init||0};if(r.photo)q.photo=r.photo;return q}),matches:[],bar:S.bar,arch:[],nid:S.nid,tours:[],obs:S.obs,classes:cl,cls:I.cls.trim()};
     resetUiClass();ui.imp={rows:[],msg:"",busy:false,cls:"",init:I.init,sw:I.sw};ui.tab="joueurs";
   }
+  else if(a=="demo"){
+    const pr="Léa,Hugo,Jade,Louis,Inès,Nathan,Chloé,Tom,Manon,Enzo,Camille,Lucas,Sarah,Jules,Anna,Adam,Zoé,Noé,Lola,Gabin,Eva,Rayan,Maëlle,Axel,Lina,Ethan,Rose,Malo".split(","),nf="Martin,Bernard,Dubois,Thomas,Robert,Richard,Petit,Durand,Leroy,Moreau,Simon,Laurent,Lefebvre,Michel,Garcia,David,Bertrand,Roux,Vincent,Fournier,Morel,Girard,André,Mercier,Dupont,Lambert,Bonnet,François".split(",");
+    const sn=snapS(),cl=(S.classes||[]).concat([sn]);let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+    const pl=pr.map((n,i)=>({id:S.nid+i,name:n+" "+nf[(i*5)%28].toUpperCase(),init:100})),nid=S.nid+pl.length,st=pl.map((_,i)=>100-i*2.5+rnd()*30),mt=[];
+    for(let k=0;k<90;k++){const x=Math.floor(rnd()*28);let y=Math.floor(rnd()*28);if(y==x)y=(y+1)%28;const px=1/(1+Math.exp((st[y]-st[x])/20)),w=rnd()<px?x:y,l=w==x?y:x;mt.push({id:nid+k,date:today(),w:pl[w].id,l:pl[l].id})}
+    S={title:S.title,players:pl,matches:mt,bar:S.bar,arch:[],nid:nid+mt.length,tours:[],obs:S.obs,classes:cl,cls:"Classe fictive (essai)"};
+    resetUiClass();ui.tab="tournoi";
+  }
   else if(a=="clsrest"){
     const c=(S.classes||[]).find(x=>x.id==v);if(!c)return;
     const sn=snapS(),cl=(S.classes||[]).filter(x=>x.id!=v).concat([sn]),d=JSON.parse(c.data);
@@ -1578,7 +1649,7 @@ document.addEventListener("change",e=>{
   else if(k=="title")S.title=t.value.trim()||"Tennis de table 4ème";
   save();render();
 });
-const BUILD="20261126-114950";let HOSTED=true;
+const BUILD="20261126-153334";let HOSTED=true;
 async function chkUpdate(){
   if(!HOSTED||location.protocol!="https:")return;
   try{
